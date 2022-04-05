@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Spyder Editor
-This is a temporary script file.
+maria pubill
 """
 import numpy as np 
 #from numpy import sqrt
