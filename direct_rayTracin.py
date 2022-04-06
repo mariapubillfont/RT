@@ -12,7 +12,7 @@ from scipy.interpolate import interp1d
 
 # parameters to define the Array
 L = 690 #length of the Array (hmax = L/3) (defined in the paper)
-N = 30 #number of elements of the Array
+N = 40 #number of elements of the Array
 d_Array = 9 # element periodicity, in mm (defined in the paper)
 d_gp = 8.4 #distance from the ground plane (defined in the paper)
 Array = np.linspace (-L/2, L/2, N)
@@ -26,19 +26,17 @@ if 0:
     for i in range(0,N):
         theta_i_y[0][i] = -30
 
-if 0:
+if 0: #80
     thy = [59.578, 58.55, 57.68, 57, 56.45, 56.07 , 55.8, 55.65, 55.55, 55.51, 55.509, 55.508]
     const = 316
     
     
-if 1:    
-    thy = [43.6, 40.71, 37.85, 35.4, 33.25, 31.35, 29.7, 28.25, 26.9, 25.85, 24.9, 24.05]
+if 1: #40     
+    thy = [43.585, 40.71866, 37.85, 35.4, 33.25, 31.35, 29.7, 28.25, 26.9, 25.85, 24.9, 24.05]
     const = 258.2  
 
    
-if 0:
-    #m = -0.045
-    #for i in range (N): theta_i_y = np.append(theta_i_y, m*Array[i])   
+if 0: #broadside
     thy = [15.5, 12.3, 9.25, 6.5, 3.9, 1.155, -1.2, -3.9, -6.5, -9.25, -12.3, -15.5]
     const = 191.7     
   
@@ -46,18 +44,15 @@ if 0:
 f = interp1d(x, thy, kind = 'cubic')
 xnew = (np.linspace(-L/2, L/2, num=1001, endpoint=True))
 fig = plt.figure()
-plt.plot(x, thy, 'o')
+fig.set_dpi(300)
+plt.plot(x, thy, '.')
 plt.plot(xnew, f(xnew))
 plt.show() 
-
-
+#theta_i_y = thy
 theta_i_y = f(Array)   
   
     
-theta_i_x_arr = np.zeros(theta_i_y.size)
-theta_i_x_arr = np.deg2rad(90-theta_i_y)
-angle_out = []
-m_max = 10000
+
 
 # parameters to define the conic shapes of the dome (all parameters defined in the paper)
 c1 = -0.0021
@@ -66,6 +61,7 @@ k1 = -1.2
 k2 = -3.9
 h1 = 325
 h2 = 345
+
 D = 1500.
 p = np.linspace(-D, D, 10000) 
 er = 2.5
@@ -74,7 +70,17 @@ n1 = 1. #air refractive indeix
 wv = 23. # wavelength in mm (defined in the paper)
 k0 = 2*np.pi/wv #propagation constant in free space
 phi_a = np.zeros((len(theta_i_y),N))
+theta_i_x_arr = np.deg2rad(90-theta_i_y)
+angle_out = []
+m_max = 10000
 
+
+#=============================================================================
+def readSurfaces():
+    s1 = np.loadtxt('surface1.csv', delimiter=',')
+    s2 = np.loadtxt('surface2.csv', delimiter=',')
+    return s1, s2
+#=============================================================================
 
 #=============================================================================
 def f(hi, ci, ki, p): #defining the surface shapes as conics
@@ -170,11 +176,20 @@ def findIntersection(f1, f2, m):
 #=============================================================================
 
 #defining the surfaces of the dome
-surface1 = f(h1, c1, k1, p)
-surface1 = np.where(surface1>0, surface1, 0.)
+if 1:
+    surface1 = f(h1, c1, k1, p)
+    surface1 = np.where(surface1>0, surface1, 0.)
+    np.savetxt('surface1.csv', surface1, delimiter=',')
     
-surface2 = f(h2, c2, k2, p)
-surface2 = np.where(surface2>0, surface2, 0.)
+        
+    surface2 = f(h2, c2, k2, p)
+    surface2 = np.where(surface2>0, surface2, 0.)
+    np.savetxt('surface2.csv', surface2, delimiter=',')
+    
+if 0:
+    surface1 = readSurfaces()[0]
+    surface2 = readSurfaces()[1]
+    
 
 #==================================================
 def distance(pointA, pointB):
