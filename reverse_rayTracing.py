@@ -16,11 +16,24 @@ d_Array = 9 # element periodicity, in mm (defined in the paper)
 d_gp = 8.4 #distance from the ground plane (defined in the paper)
 Array = np.linspace (-L/2, L/2, N)
 d_Array_m = Array[1] - Array[0] #measured interelement distance
-theta_o_y = [0]
-const =  95.8  #incident angle with respect to the normal
+theta_o_y = [80]
 theta_o_x_arr = np.deg2rad([90 - x for x in theta_o_y]) #incident angle with respect to x axis
 angle_in = []
 m_max = 10000
+
+
+
+# const is a constant in order to center the phase distribution to the center
+if 1: #80
+    const = 316/2
+    
+    
+if 0: #40     
+    const = 258.2/2  
+
+   
+if 0: #broadside
+    const = 95.8
 
 # parameters to define the conic shapes of the dome (all parameters defined in the paper)
 c1 = -0.0021
@@ -173,7 +186,7 @@ for j in range(0,len(theta_o_x_arr)):
         ## ray 3 -> from surface 2 to air
             
         x1=Array[i] #points of the array
-        y1= 0
+        y1=250
         #construct the line equation of ray3
         m3 = np.tan(theta_o_x)
         ray3 = m3*(p-x1)+y1

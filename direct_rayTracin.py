@@ -69,7 +69,7 @@ n2 = np.sqrt(er) #dielectric refractive index
 n1 = 1. #air refractive indeix 
 wv = 23. # wavelength in mm (defined in the paper)
 k0 = 2*np.pi/wv #propagation constant in free space
-phi_a = np.zeros((len(theta_i_y),N))
+phi_a = np.zeros(N)
 theta_i_x_arr = np.deg2rad(90-theta_i_y)
 angle_out = []
 m_max = 10000
@@ -310,22 +310,22 @@ plt.show()
     
       
         
-# #plot the phase distribution
-# fig = plt.figure(2)
-# fig.set_dpi(300)
-# ax = fig.add_subplot(111)
-# for i in range(0, len(phi_a)):
-#     plt.plot(Array,phi_a[i][:])
-# # plt.plot(Array,phi_a[0][:], Array,phi_a[1][:], Array,phi_a[2][:])
-# ax.set_aspect(1, adjustable='box')
-# plt.ylim([-90,90])
-# ax.set_aspect(4, adjustable='box')
+#plot the phase distribution
+fig = plt.figure(2)
+fig.set_dpi(300)
+ax = fig.add_subplot(111)
 
-# plt.yticks([-80, -40, 0, 40, 80], ['-80', '-40', '0', '40', '80'])
-# plt.xticks([-L/2, -L/4, 0, L/4, L/2], ['-L/2', '-L/4', '0', 'L/4', 'L/2'])
-# # plt.ylim([-90,90])
-# plt.ylabel('$\phi_a$ (rad)' )
-# plt.xlabel('L (mm)')
-# plt.rcParams["font.family"] = "Times New Roman"    
-# plt.grid()    
+plt.plot(Array,phi_a)
+# plt.plot(Array,phi_a[0][:], Array,phi_a[1][:], Array,phi_a[2][:])
+ax.set_aspect(1, adjustable='box')
+plt.ylim([-90,90])
+ax.set_aspect(4, adjustable='box')
+
+plt.yticks([-80, -40, 0, 40, 80], ['-80', '-40', '0', '40', '80'])
+plt.xticks([-L/2, -L/4, 0, L/4, L/2], ['-L/2', '-L/4', '0', 'L/4', 'L/2'])
+# plt.ylim([-90,90])
+plt.ylabel('$\phi_a$ (rad)' )
+plt.xlabel('L (mm)')
+plt.rcParams["font.family"] = "Times New Roman"    
+plt.grid()    
      
