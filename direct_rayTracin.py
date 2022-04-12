@@ -287,6 +287,27 @@ for i in range(0,len(Array)):
     
     
     angle_out = np.append(angle_out, getTheta_btw(m3, m_max)*180/np.pi)
+
+    
+    if i == 0: 
+        x_rmin = x_r
+        x_lmin = x1
+        y_rmin = y_r
+        y_lmin = y1
+    if i == N-1:
+        x_rmax = x_r
+        x_lmax = x1
+        y_rmax = y_r
+        y_lmax = y1
+        plt.plot(x_lmax, y_lmax, '.')
+        Leff = distance([x_rmin, y_rmin], [x_rmax, y_rmax])
+        Lproj = distance([x_lmin, y_lmin], [x_lmax, y_lmax])
+        M = Leff / (Lproj*np.cos(np.deg2rad(angle_out[0])))
+    
+    plt.plot(x_lmin, y_lmin, '.')
+    
+    
+    
     # calculate the distances of each ray
     if 0:
         d1 = math.dist([x1, y1],[xi, yi])
@@ -304,6 +325,9 @@ for i in range(0,len(Array)):
     #calculate the phase distribution along the central row of the illuminating array
     phi_a[i] = -phi_i + const #50 is an arbitrary constant to center the phase to 0
     #print(phi_i, phi_i/wv, (phi_i/wv - phi_i//wv)*180/np.pi)
+    
+    
+    #Lproj = 
     
 plt.grid()
 plt.show()

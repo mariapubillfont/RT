@@ -16,7 +16,7 @@ d_Array = 9 # element periodicity, in mm (defined in the paper)
 d_gp = 8.4 #distance from the ground plane (defined in the paper)
 Array = np.linspace (-L/2, L/2, N)
 d_Array_m = Array[1] - Array[0] #measured interelement distance
-theta_o_y = [80]
+theta_o_y = [40]
 theta_o_x_arr = np.deg2rad([90 - x for x in theta_o_y]) #incident angle with respect to x axis
 angle_in = []
 m_max = 10000
@@ -24,11 +24,11 @@ m_max = 10000
 
 
 # const is a constant in order to center the phase distribution to the center
-if 1: #80
+if 0: #80
     const = 316/2
     
     
-if 0: #40     
+if 1: #40     
     const = 258.2/2  
 
    
@@ -186,7 +186,7 @@ for j in range(0,len(theta_o_x_arr)):
         ## ray 3 -> from surface 2 to air
             
         x1=Array[i] #points of the array
-        y1=250
+        y1=0
         #construct the line equation of ray3
         m3 = np.tan(theta_o_x)
         ray3 = m3*(p-x1)+y1
