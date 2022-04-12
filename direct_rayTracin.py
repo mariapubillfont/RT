@@ -12,7 +12,7 @@ from scipy.interpolate import interp1d
 
 # parameters to define the Array
 L = 690 #length of the Array (hmax = L/3) (defined in the paper)
-N = 40 #number of elements of the Array
+N = 30 #number of elements of the Array
 d_Array = 9 # element periodicity, in mm (defined in the paper)
 d_gp = 8.4 #distance from the ground plane (defined in the paper)
 Array = np.linspace (-L/2, L/2, N)
@@ -26,34 +26,33 @@ if 0:
     for i in range(0,N):
         theta_i_y[0][i] = -30
 
-if 0: #80
+#output angle, what you have to change.         
+output_angle = 0
+if output_angle == 80: #80
     thy = [59.578, 58.55, 57.68, 57, 56.45, 56.07 , 55.8, 55.65, 55.55, 55.51, 55.509, 55.508]
     const = 316
-    
-    
-if 1: #40     
+        
+elif output_angle == 40: #40     
     thy = [43.585, 40.71866, 37.85, 35.4, 33.25, 31.35, 29.7, 28.25, 26.9, 25.85, 24.9, 24.05]
     const = 258.2  
 
-   
-if 0: #broadside
+elif output_angle == 0: #broadside
     thy = [15.5, 12.3, 9.25, 6.5, 3.9, 1.155, -1.2, -3.9, -6.5, -9.25, -12.3, -15.5]
     const = 191.7     
   
 #plot the function of the phases
 f = interp1d(x, thy, kind = 'cubic')
 xnew = (np.linspace(-L/2, L/2, num=1001, endpoint=True))
-fig = plt.figure()
-fig.set_dpi(300)
-plt.plot(x, thy, '.')
-plt.plot(xnew, f(xnew))
-plt.show() 
+theta_i_y = f(Array)
+# fig = plt.figure()
+# fig.set_dpi(300)
+# plt.plot(x, thy, '.')
+# plt.plot(xnew, f(xnew))
+# plt.show() 
 #theta_i_y = thy
-theta_i_y = f(Array)   
+   
   
     
-
-
 # parameters to define the conic shapes of the dome (all parameters defined in the paper)
 c1 = -0.0021
 c2 = -0.0005
@@ -265,8 +264,8 @@ for i in range(0,len(Array)):
         continue
     
     #line equation that defines the ray 3 (from surface 2 to air)
-    x_r =   np.cos(theta_out_x2)*400 + xi_2 #point at the aperture plane
-    y_r = abs(np.sin(theta_out_x2))*400 + yi_2
+    x_r =   np.cos(theta_out_x2)*800 + xi_2 #point at the aperture plane
+    y_r = abs(np.sin(theta_out_x2))*900 + yi_2
     m3 = np.tan(theta_out_x2)
     ray3 = m3*(p-xi_2)+yi_2
     #plt.plot([x_r,xi_2],[y_r,yi_2], color='black', linewidth = 0.5) #plot the final part, from the surface 2 to the air
@@ -281,14 +280,17 @@ for i in range(0,len(Array)):
     y_r_max = abs(np.sin(theta_out_x2))*h2*2 +y1
     ray3_perp =  m_t*(p - x_r_max) + y_r_max
     
+    plt.plot(p, ray3_perp)
+    
     [xi_3,yi_3] = findIntersection(ray3, ray3_perp, m3)
-    #plt.plot([xi_3,xi_2],[yi_3,yi_2], color='black', linewidth = 0.5)
-    plt.plot([x_r,xi_2],[y_r,yi_2], color='black', linewidth = 0.5)
+    plt.plot([xi_3,xi_2],[yi_3,yi_2], color='black', linewidth = 0.5)
+    #plt.plot([x_r,xi_2],[y_r,yi_2], color='black', linewidth = 0.5)
     
     
     angle_out = np.append(angle_out, getTheta_btw(m3, m_max)*180/np.pi)
 
     
+    #calculation of the effective length, and magnification
     if i == 0: 
         x_rmin = x_r
         x_lmin = x1
@@ -300,34 +302,23 @@ for i in range(0,len(Array)):
         y_rmax = y_r
         y_lmax = y1
         plt.plot(x_lmax, y_lmax, '.')
-        Leff = distance([x_rmin, y_rmin], [x_rmax, y_rmax])
-        Lproj = distance([x_lmin, y_lmin], [x_lmax, y_lmax])
-        M = Leff / (Lproj*np.cos(np.deg2rad(angle_out[0])))
-    
-    plt.plot(x_lmin, y_lmin, '.')
-    
+        Leff = distance([x_rmin, y_rmin], [x_rmax, y_rmax]) #effective length at the aperture plane
+        Lproj = distance([x_lmin, y_lmin], [x_lmax, y_lmax]) #length of the array
+        M = Leff / (Lproj*np.cos(np.deg2rad(output_angle))) #magnification  
     
     
     # calculate the distances of each ray
-    if 0:
-        d1 = math.dist([x1, y1],[xi, yi])
-        d2 = math.dist([xi, yi],[xi_2, yi_2])
-        d3 = math.dist([xi_2, yi_2],[xi_3, yi_3])
-    if 1:
-        d1 = distance([x1, y1],[xi, yi])
-        d2 = distance([xi, yi],[xi_2, yi_2])     
-        d3 = distance([xi_2, yi_2],[xi_3, yi_3])
-
-    
+    d1 = distance([x1, y1],[xi, yi])
+    d2 = distance([xi, yi],[xi_2, yi_2])     
+    d3 = distance([xi_2, yi_2],[xi_3, yi_3])
+            
     #calculate the phase distribuiton
     phi_i = getPhaseDisrt_i(d1, d2, d3) #phase contribution due to the ray propagation
     
     #calculate the phase distribution along the central row of the illuminating array
     phi_a[i] = -phi_i + const #50 is an arbitrary constant to center the phase to 0
-    #print(phi_i, phi_i/wv, (phi_i/wv - phi_i//wv)*180/np.pi)
     
     
-    #Lproj = 
     
 plt.grid()
 plt.show()
@@ -340,6 +331,7 @@ fig.set_dpi(300)
 ax = fig.add_subplot(111)
 
 plt.plot(Array,phi_a)
+plt.title('Phase distribution for $\u03B8_o$=' + str(output_angle))
 # plt.plot(Array,phi_a[0][:], Array,phi_a[1][:], Array,phi_a[2][:])
 ax.set_aspect(1, adjustable='box')
 plt.ylim([-90,90])
