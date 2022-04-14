@@ -177,6 +177,7 @@ surface_points = getSurfacePoints(surface2)
 
 
 
+
 #==================================================
 def distance(pointA, pointB):
     return (
@@ -203,7 +204,9 @@ plt.plot(p_points, surface_points, '.')
 
 plt.plot(Array, np.zeros(N), '.', color='black')
 
-for i in range(0,len(Array)):
+#for i in range(0,len(Array)):
+for i in range(0, len(surface_points)):    
+    
     ## ray 1 -> from Array to surface1 (first dome surface)
     ## ray 2 -> from surface1 to surface2 (second dome surface)
     ## ray 3 -> from surface 2 to air
