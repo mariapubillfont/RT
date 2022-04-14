@@ -11,23 +11,25 @@ import matplotlib.pyplot as plt
 
 # parameters to define the Array
 L = 690 #length of the Array (hmax = L/3) (defined in the paper)
-N =30 #number of elements of the Array
+N =6 #number of elements of the Array
 d_Array = 9 # element periodicity, in mm (defined in the paper)
 d_gp = 8.4 #distance from the ground plane (defined in the paper)
 Array = np.linspace (-L/2, L/2, N)
 d_Array_m = Array[1] - Array[0] #measured interelement distance
 
 #what you have to change
-theta_o_y = 0
+theta_o_y = 40
+
 theta_o_x = np.deg2rad(90 -  theta_o_y) #incident angle with respect to x axis
 angle_in = []
 m_max = 10000
+spacing=100
 
 
 
 # const is a constant in order to center the phase distribution to the center
 if theta_o_y == 80: #80
-    const = 316/2  
+    const = 163  
     y1=230
     
 elif theta_o_y == 40: #40  
@@ -60,6 +62,21 @@ xy_min = []
 #=============================================================================
 def f(hi, ci, ki, p): #defining the surface shapes as conics
     return hi + (ci*pow(p,2))/(1+np.sqrt(1-(1+ki)*pow(ci,2)*pow(p,2)))
+#=============================================================================
+
+
+#=============================================================================
+def getSurfacePoints(s):
+    
+    spoints=[]
+    index = 0
+    for i in range(0,len(s)):
+        if(i%spacing==0): 
+            spoints = np.append(spoints, s[i]) 
+            
+        index += index
+        
+    return spoints
 #=============================================================================
 
 
@@ -155,6 +172,10 @@ surface2 = f(h2, c2, k2, p)
 surface2 = np.where(surface2>0, surface2, 0.)
 zero_line = np.zeros(len(p))
 
+p_points = np.linspace(-D, D, int(10000/spacing)) 
+surface_points = getSurfacePoints(surface2)
+
+
 
 #==================================================
 def distance(pointA, pointB):
@@ -175,8 +196,10 @@ ax.set_aspect(1, adjustable='box')
 ax.fill_between(p, surface1, surface2, color = 'lightgrey')
 plt.ylim([0,h2*3])
 plt.ylabel('z (mm)' )
-plt.xlabel('D (mm)')
+plt.xlabel('x (mm)')
 plt.rcParams["font.family"] = "Times New Roman"
+plt.plot(p_points, surface_points, '.')
+
 
 plt.plot(Array, np.zeros(N), '.', color='black')
 
@@ -190,6 +213,8 @@ for i in range(0,len(Array)):
     #construct the line equation of ray3
     m3 = np.tan(theta_o_x)
     ray3 = m3*(p-x1)+y1
+    
+    
     #plt.plot(p, ray3)
    
     # find the aperture plane (perpendicular to the radiation direction)
@@ -261,7 +286,6 @@ for i in range(0,len(Array)):
     d2 = distance([xi, yi],[xi_2, yi_2])
     d3 = distance([xi_2, yi_2],[xi_3, yi_3])
     
-    plt.plot(x0, y0, 'x')
     
     
     #calculate the phase distribuiton at the aperture plane
@@ -302,7 +326,7 @@ plt.grid()
 fig = plt.figure(3)
 fig.set_dpi(300)
 ax = fig.add_subplot(111)
-plt.rcParams['font.size'] = '12'
+plt.rcParams['font.size'] = '9'
 plt.plot(phi_array, phi_a)
 ax.set_aspect(4, adjustable='box')
 

@@ -12,6 +12,7 @@ from scipy.interpolate import interp1d
 
 # parameters to define the Array
 L = 690 #length of the Array (hmax = L/3) (defined in the paper)
+diagonal  = np.sqrt(pow(690,2)+pow(690,2))
 N = 30 #number of elements of the Array
 d_Array = 9 # element periodicity, in mm (defined in the paper)
 d_gp = 8.4 #distance from the ground plane (defined in the paper)
@@ -27,7 +28,7 @@ if 0:
         theta_i_y[0][i] = -30
 
 #output angle, what you have to change.         
-output_angle = 0
+output_angle = 80
 if output_angle == 80: #80
     thy = [59.578, 58.55, 57.68, 57, 56.45, 56.07 , 55.8, 55.65, 55.55, 55.51, 55.509, 55.508]
     const = 316
@@ -280,7 +281,6 @@ for i in range(0,len(Array)):
     y_r_max = abs(np.sin(theta_out_x2))*h2*2 +y1
     ray3_perp =  m_t*(p - x_r_max) + y_r_max
     
-    plt.plot(p, ray3_perp)
     
     [xi_3,yi_3] = findIntersection(ray3, ray3_perp, m3)
     plt.plot([xi_3,xi_2],[yi_3,yi_2], color='black', linewidth = 0.5)
@@ -304,7 +304,7 @@ for i in range(0,len(Array)):
         plt.plot(x_lmax, y_lmax, '.')
         Leff = distance([x_rmin, y_rmin], [x_rmax, y_rmax]) #effective length at the aperture plane
         Lproj = distance([x_lmin, y_lmin], [x_lmax, y_lmax]) #length of the array
-        M = Leff / (Lproj*np.cos(np.deg2rad(output_angle))) #magnification  
+        M = Leff / (diagonal*np.cos(np.deg2rad(output_angle))) #magnification  
     
     
     # calculate the distances of each ray
