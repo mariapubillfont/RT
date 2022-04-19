@@ -29,16 +29,16 @@ spacing=100
 
 # const is a constant in order to center the phase distribution to the center
 if theta_o_y == 80: #80
-    const = 163  
+    const = 245
     y1=230
     
 elif theta_o_y == 40: #40  
     print('entra')   
-    const = 258.2/2  
+    const = 175
     y1=0
    
 elif theta_o_y == 0: #broadside
-    const = 95
+    const = 63
     y1=0
 
 # parameters to define the conic shapes of the dome (all parameters defined in the paper)
@@ -48,7 +48,7 @@ k1 = -1.2
 k2 = -3.9
 h1 = 325
 h2 = 345
-D = 1500.
+D = 2000.
 p = np.linspace(-D, D, 10000) 
 er = 2.5
 n2 = np.sqrt(er) #dielectric refractive index
@@ -153,11 +153,16 @@ def findIntersection(f1, f2, m):
                 break
     if 1:
         idx = np.argwhere(np.diff(np.sign(f1[:]-f2[:]))).flatten()
-        
+        # if len(idx)==0: 
+        #     print('buit')
+        #     x=0
+        #     y=0
+        #     return
         if len(idx) == 1:
             idx = idx[0]
             x = p[idx]
             y = f2[idx] 
+
         else: 
             x = p[max(idx)]
             y = f2[max(idx)]
@@ -174,6 +179,9 @@ zero_line = np.zeros(len(p))
 
 p_points = np.linspace(-D, D, int(10000/spacing)) 
 surface_points = getSurfacePoints(surface2)
+for i in range(0, len(surface_points)):
+    if surface_points[i] != 0 and surface_points[i-1] == 0: surface_min = p_points[i]
+    if  surface_points[i] != 0 and surface_points[i+1] == 0: surface_max = p_points[i]
 
 
 
@@ -199,37 +207,45 @@ plt.ylim([0,h2*3])
 plt.ylabel('z (mm)' )
 plt.xlabel('x (mm)')
 plt.rcParams["font.family"] = "Times New Roman"
-plt.plot(p_points, surface_points, '.')
+# plt.plot(p_points, surface_points, '.')
 
 
 plt.plot(Array, np.zeros(N), '.', color='black')
 
 #for i in range(0,len(Array)):
-for i in range(0, len(surface_points)):    
+for i in range(0, len(surface_points)-1):    
     
     ## ray 1 -> from Array to surface1 (first dome surface)
     ## ray 2 -> from surface1 to surface2 (second dome surface)
     ## ray 3 -> from surface 2 to air
         
-    x1=Array[i] #points of the array
+    #x1=Array[i] #points of the array
     
     #construct the line equation of ray3
+    x1 = p_points[i]
+    y1 = surface_points[i]
     m3 = np.tan(theta_o_x)
     ray3 = m3*(p-x1)+y1
+    # plt.plot(x1, y1, '.', color='red')
     
     
-    #plt.plot(p, ray3)
+    # plt.plot(p, ray3)
    
     # find the aperture plane (perpendicular to the radiation direction)
     m_t = -1./m3
     if theta_o_y >= 0:    
-        x_r_max =  np.cos(theta_o_x)*h2*2 + max(Array)
+        x_r_max =  np.cos(theta_o_x)*h2 + surface_max
     else:
-        x_r_max =  np.cos(theta_o_x)*h2*2 + min(Array)
-    y_r_max = abs(np.sin(theta_o_x))*h2*2 +y1
+        x_r_max =  np.cos(theta_o_x)*h2 + surface_min
+    y_r_max = abs(np.sin(theta_o_x))*h2 + 100 
+    
+  
     ray3_perp =  m_t*(p - x_r_max) + y_r_max
-
+    # plt.plot(x_r_max, y_r_max, 'x')
+    # plt.plot(p,ray3_perp)
     [xi_2,yi_2] = findIntersection(ray3, surface2, m3) #intersection between ray3 and surface2
+    # plt.plot(xi_2, yi_2, 'x')
+    # print(i)
     [xi_3,yi_3] = findIntersection(ray3, ray3_perp, m3) #intersection between ray3 and aperture plane
     plt.plot([xi_3,xi_2],[yi_3,yi_2], color='black', linewidth = 0.5) #plot the final part, from the surface 2 to the air
     
@@ -246,6 +262,7 @@ for i in range(0, len(surface_points)):
     #line equation that defines the ray 2 (from surface 1 to surface 2, inside the dielectric)
     m2 = np.tan(theta_inc_x2)
     ray2 = m2*(p-xi_2)+yi_2
+    # plt.plot(p, ray2)
     
     
     [xi,yi] = findIntersection(ray2, surface1, m2) #find the instersection between the ray2 and the surface 2 and plot ray 2
@@ -291,20 +308,26 @@ for i in range(0, len(surface_points)):
     
     
     
-    #calculate the phase distribuiton at the aperture plane
+    # #calculate the phase distribuiton at the aperture plane
     phi_i = getPhaseDisrt_i(d1, d2, d3) #phase contribution due to the ray propagation
     # phi_a[i] = -phi_i + const
     
     
 
 
-    #calculate the phase distribution along the central row of the illuminating array
+    # calculate the phase distribution along the central row of the illuminating array
     if abs(x0) <= max(Array):
-        print('entra per '+ str(i))
-        angle_in = np.append(angle_in, getTheta_btw(m, m_max)*180/np.pi)
-        phi_a = np.append(phi_a, -phi_i + const  )
-        phi_array = np.append(phi_array , x0)
+        plt.plot([x0,xi],[y0,yi], color='red', linewidth = 0.5)
+        plt.plot([xi,xi_2],[yi,yi_2], color='red', linewidth = 0.5)
+        plt.plot([xi_3,xi_2],[yi_3,yi_2], color='red', linewidth = 0.5)
+        # print('entra per '+ str(i))
+            
+        # angle_in = np.append(angle_in, getTheta_btw(m, m_max)*180/np.pi)
+        # phi_a = np.append(phi_a, -phi_i + const  )
+        # phi_array = np.append(phi_array , x0)
     if i == 0 : [x_r_min, y_r_min] = [xi_3, yi_3]
+
+
 
 # L_eff[j] = distance([xy_min[0], xy_min[1]], [x_r_max, y_r_max])
 # L_project[j] = L*np.cos(theta_o_y[j]*np.pi/180)
@@ -325,21 +348,21 @@ plt.grid()
 # plt.xticks([-L/2, -L/4, 0, L/4, L/2], ['-L/2', '-L/4', '0', 'L/4', 'L/2'])
 
 
-#plot the phase distribution
-fig = plt.figure(3)
-fig.set_dpi(300)
-ax = fig.add_subplot(111)
-plt.rcParams['font.size'] = '9'
-plt.plot(phi_array, phi_a)
-ax.set_aspect(4, adjustable='box')
+# plot the phase distribution
+# fig = plt.figure(3)
+# fig.set_dpi(300)
+# ax = fig.add_subplot(111)
+# plt.rcParams['font.size'] = '9'
+# plt.plot(phi_array, phi_a)
+# ax.set_aspect(4, adjustable='box')
 
-plt.yticks([-80, -40, 0, 40, 80], ['-80', '-40', '0', '40', '80'])
-plt.xticks([-L/2, -L/4, 0, L/4, L/2], ['-L/2', '-L/4', '0', 'L/4', 'L/2'])
-plt.ylim([-90,90])
-plt.title('Phase distribution for $\u03B8_o$=' + str(theta_o_y))
-plt.ylabel('$\phi_a$ (rad)' )
-plt.xlabel('x (mm)')
-plt.rcParams["font.family"] = "Times New Roman"    
+# plt.yticks([-80, -40, 0, 40, 80], ['-80', '-40', '0', '40', '80'])
+# plt.xticks([-L/2, -L/4, 0, L/4, L/2], ['-L/2', '-L/4', '0', 'L/4', 'L/2'])
+# plt.ylim([-90,90])
+# plt.title('Phase distribution for $\u03B8_o$=' + str(theta_o_y))
+# plt.ylabel('$\phi_a$ (rad)' )
+# plt.xlabel('x (mm)')
+# plt.rcParams["font.family"] = "Times New Roman"    
 
 
 
