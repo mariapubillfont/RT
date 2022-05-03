@@ -13,13 +13,15 @@ from scipy.interpolate import interp1d
 # parameters to define the Array
 L = 690 #length of the Array (hmax = L/3) (defined in the paper)
 diagonal  = np.sqrt(pow(690,2)+pow(690,2))
-N = 30 #number of elements of the Array
+N = 5 #number of elements of the Array
 d_Array = 9 # element periodicity, in mm (defined in the paper)
 d_gp = 8.4 #distance from the ground plane (defined in the paper)
 Array = np.linspace (-L/2, L/2, N)
 d_Array_m = Array[1] - Array[0] #measured interelement distance
 theta_i_y = []
 x = np.linspace(-L/2, L/2, 12)
+xi_3_array = []
+yi_3_array = []
 
 if 0:
     theta_i_y =[ np.zeros(N) ]
@@ -28,7 +30,7 @@ if 0:
         theta_i_y[0][i] = -30
 
 #output angle, what you have to change.         
-output_angle = 80
+output_angle = 0
 if output_angle == 80: #80
     thy = [59.578, 58.55, 57.68, 57, 56.45, 56.07 , 55.8, 55.65, 55.55, 55.51, 55.509, 55.508]
     const = 316
@@ -211,7 +213,7 @@ plt.ylim([0,h2*3])
 plt.ylabel('z (mm)' )
 plt.xlabel('x (mm)')
 plt.rcParams["font.family"] = "Times New Roman"
-plt.plot(Array, np.zeros(N), 'o', color='black')
+#plt.plot(Array, np.zeros(N), 'o', color='black')
 
 for i in range(0,len(Array)):
     ## ray 1 -> from Array to surface1 (first dome surface)
@@ -271,6 +273,7 @@ for i in range(0,len(Array)):
     ray3 = m3*(p-xi_2)+yi_2
     #plt.plot([x_r,xi_2],[y_r,yi_2], color='black', linewidth = 0.5) #plot the final part, from the surface 2 to the air
     #plt.plot(p, ray3)
+    plt.plot(x_r, y_r, 'x')
     
     # find the aperture plane
     m_t = -1./m3
@@ -285,7 +288,9 @@ for i in range(0,len(Array)):
     [xi_3,yi_3] = findIntersection(ray3, ray3_perp, m3)
     plt.plot([xi_3,xi_2],[yi_3,yi_2], color='black', linewidth = 0.5)
     #plt.plot([x_r,xi_2],[y_r,yi_2], color='black', linewidth = 0.5)
-    
+    plt.plot(xi_3, yi_3, 'x', color='green')
+    xi_3_array = np.append(xi_3_array, xi_3)
+    yi_3_array = np.append(yi_3_array, yi_3)
     
     angle_out = np.append(angle_out, getTheta_btw(m3, m_max)*180/np.pi)
 
@@ -304,17 +309,18 @@ for i in range(0,len(Array)):
         plt.plot(x_lmax, y_lmax, '.')
         Leff = distance([x_rmin, y_rmin], [x_rmax, y_rmax]) #effective length at the aperture plane
         Lproj = distance([x_lmin, y_lmin], [x_lmax, y_lmax]) #length of the array
-        M = Leff / (diagonal*np.cos(np.deg2rad(output_angle))) #magnification  
-    
+        M = Leff / (Lproj*np.cos(np.deg2rad(output_angle))) #magnification  
     
     # calculate the distances of each ray
     d1 = distance([x1, y1],[xi, yi])
     d2 = distance([xi, yi],[xi_2, yi_2])     
     d3 = distance([xi_2, yi_2],[xi_3, yi_3])
+    
             
     #calculate the phase distribuiton
     phi_i = getPhaseDisrt_i(d1, d2, d3) #phase contribution due to the ray propagation
     
+    print(phi_i)
     #calculate the phase distribution along the central row of the illuminating array
     phi_a[i] = -phi_i + const #50 is an arbitrary constant to center the phase to 0
     
