@@ -13,7 +13,7 @@ from scipy.interpolate import interp1d
 # parameters to define the Array
 L = 690 #length of the Array (hmax = L/3) (defined in the paper)
 diagonal  = np.sqrt(pow(690,2)+pow(690,2))
-N = 100 #number of elements of the Array
+N = 10 #number of elements of the Array
 d_Array = 9 # element periodicity, in mm (defined in the paper)
 d_gp = 8.4 #distance from the ground plane (defined in the paper)
 Array = np.linspace (-L/2, L/2, N)
@@ -53,7 +53,13 @@ theta_i_y = f(Array)
 # plt.plot(xnew, f(xnew))
 # plt.show() 
 #theta_i_y = thy
-   
+
+Ak = np.ones(N)
+Ak_ap = []
+Pk = np.zeros([N,2])
+Pk_ap = np.zeros([N,2])
+dLk = []   
+theta_k = []
   
     
 # parameters to define the conic shapes of the dome (all parameters defined in the paper)
@@ -177,6 +183,24 @@ def findIntersection(f1, f2, m):
     return x,y 
 #=============================================================================
 
+
+#==================================================
+def distance(pointA, pointB):
+    return (
+        ((pointA[0] - pointB[0]) ** 2) +
+        ((pointA[1] - pointB[1]) ** 2) 
+    ) ** 0.5  # fast sqrt
+#==================================================
+
+#=============================================================================
+def getAmplitude(Pk, Pk1, Pk_ap, Pk_ap1, theta): #get the amplitude of the E field at the aperture plane.
+    dLk = distance(Pk, Pk1)/2
+    dck_ap = distance(Pk_ap, Pk_ap1)/2
+    return np.sqrt(dLk/(dck_ap*np.cos(theta)))
+
+# =============================================================================
+
+
 #defining the surfaces of the dome
 if 1:
     surface1 = f(h1, c1, k1, p)
@@ -193,13 +217,7 @@ if 0:
     surface2 = readSurfaces()[1]
     
 
-#==================================================
-def distance(pointA, pointB):
-    return (
-        ((pointA[0] - pointB[0]) ** 2) +
-        ((pointA[1] - pointB[1]) ** 2) 
-    ) ** 0.5  # fast sqrt
-#==================================================
+
 
     #theta_i_x = theta_i_x_arr[j]
 fig = plt.figure(1)
@@ -224,6 +242,8 @@ for i in range(0,len(Array)):
     #create the line equation of the ray 1 (from the Array to surface 1)
     x1=Array[i]
     y1=0
+    
+    Pk[i] = [x1, y1]
     
     m = m_max if theta_i_x == np.pi/2 else np.tan(theta_i_x)   
     ray1 = m*(p-x1)+y1   
@@ -255,6 +275,8 @@ for i in range(0,len(Array)):
     
     # #calculate the final angle out  
     m_n2 = findNormal(xi_2, yi_2, c2, k2, h2) #find the normal of surface 2 in the intersection point 2
+    rayprova = m_n2*(p-xi_2) + yi_2
+    plt.plot(p, rayprova, color='red', linewidth = 0.5)
     theta_inc2 = getTheta_btw(m_n2, m2)
     theta_out2 = snell(theta_inc2, n2, n1) #get angle_out with respect to the normal
     theta_out_x2 = getTheta_btw(0,m_n2) + theta_out2  #get angle out with respect to the x axis
@@ -272,7 +294,7 @@ for i in range(0,len(Array)):
     m3 = np.tan(theta_out_x2)
     ray3 = m3*(p-xi_2)+yi_2
     #plt.plot([x_r,xi_2],[y_r,yi_2], color='black', linewidth = 0.5) #plot the final part, from the surface 2 to the air
-    #plt.plot(p, ray3)
+    # plt.plot(p, ray3)
     # plt.plot(x_r, y_r, 'x')
     
     # find the aperture plane
@@ -289,8 +311,11 @@ for i in range(0,len(Array)):
     plt.plot([xi_3,xi_2],[yi_3,yi_2], color='black', linewidth = 0.5)
     #plt.plot([x_r,xi_2],[y_r,yi_2], color='black', linewidth = 0.5)
     # plt.plot(xi_3, yi_3, 'x', color='green')
-    xi_3_array = np.append(xi_3_array, xi_3)
-    yi_3_array = np.append(yi_3_array, yi_3)
+    
+    Pk_ap[i]=[xi_3, yi_3]
+    # plt.plot(Pk_ap[i][0], Pk_ap[i][1], 'x', color = 'red')
+    # plt.plot(Pk[i][0], Pk[i][1], 'x', color = 'red')
+    
     
     angle_out = np.append(angle_out, getTheta_btw(m3, m_max)*180/np.pi)
 
@@ -330,7 +355,13 @@ for i in range(0,len(Array)):
     #calculate the phase distribution along the central row of the illuminating array
     phi_a[i] = -phi_i + const #50 is an arbitrary constant to center the phase to 0
     
+    theta_k = np.append(theta_k, getTheta_btw(m_n2, m3))
     
+    if i>1:
+        Ak_ap = np.append(Ak_ap, Ak[i-1]*getAmplitude(Pk[i-2], Pk[i], Pk_ap[i-2], Pk_ap[i], theta_k[i-1]))
+
+    
+
     
 plt.grid()
 plt.show()
