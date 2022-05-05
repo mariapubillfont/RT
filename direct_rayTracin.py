@@ -13,7 +13,7 @@ from scipy.interpolate import interp1d
 # parameters to define the Array
 L = 690 #length of the Array (hmax = L/3) (defined in the paper)
 diagonal  = np.sqrt(pow(690,2)+pow(690,2))
-N = 5 #number of elements of the Array
+N = 100 #number of elements of the Array
 d_Array = 9 # element periodicity, in mm (defined in the paper)
 d_gp = 8.4 #distance from the ground plane (defined in the paper)
 Array = np.linspace (-L/2, L/2, N)
@@ -30,7 +30,7 @@ if 0:
         theta_i_y[0][i] = -30
 
 #output angle, what you have to change.         
-output_angle = 0
+output_angle = 40
 if output_angle == 80: #80
     thy = [59.578, 58.55, 57.68, 57, 56.45, 56.07 , 55.8, 55.65, 55.55, 55.51, 55.509, 55.508]
     const = 316
@@ -273,7 +273,7 @@ for i in range(0,len(Array)):
     ray3 = m3*(p-xi_2)+yi_2
     #plt.plot([x_r,xi_2],[y_r,yi_2], color='black', linewidth = 0.5) #plot the final part, from the surface 2 to the air
     #plt.plot(p, ray3)
-    plt.plot(x_r, y_r, 'x')
+    # plt.plot(x_r, y_r, 'x')
     
     # find the aperture plane
     m_t = -1./m3
@@ -288,7 +288,7 @@ for i in range(0,len(Array)):
     [xi_3,yi_3] = findIntersection(ray3, ray3_perp, m3)
     plt.plot([xi_3,xi_2],[yi_3,yi_2], color='black', linewidth = 0.5)
     #plt.plot([x_r,xi_2],[y_r,yi_2], color='black', linewidth = 0.5)
-    plt.plot(xi_3, yi_3, 'x', color='green')
+    # plt.plot(xi_3, yi_3, 'x', color='green')
     xi_3_array = np.append(xi_3_array, xi_3)
     yi_3_array = np.append(yi_3_array, yi_3)
     
@@ -297,19 +297,26 @@ for i in range(0,len(Array)):
     
     #calculation of the effective length, and magnification
     if i == 0: 
-        x_rmin = x_r
+        x_rmin = xi_3
         x_lmin = x1
-        y_rmin = y_r
+        y_rmin = yi_3
         y_lmin = y1
+        # plt.plot(x_rmin, y_rmin,'x', color='black')
+        # plt.plot(x_lmin, y_lmin, 'x', color='blue')
     if i == N-1:
-        x_rmax = x_r
+        x_rmax = xi_3
         x_lmax = x1
-        y_rmax = y_r
+        y_rmax = yi_3
         y_lmax = y1
-        plt.plot(x_lmax, y_lmax, '.')
+        # plt.plot(x_lmax, y_lmax, '.')
         Leff = distance([x_rmin, y_rmin], [x_rmax, y_rmax]) #effective length at the aperture plane
         Lproj = distance([x_lmin, y_lmin], [x_lmax, y_lmax]) #length of the array
         M = Leff / (Lproj*np.cos(np.deg2rad(output_angle))) #magnification  
+    
+        # plt.plot(x_lmax, y_lmax, 'x', color='green')
+        # plt.plot(x_rmax, y_rmax, 'x', color='pink')
+
+    
     
     # calculate the distances of each ray
     d1 = distance([x1, y1],[xi, yi])
@@ -320,7 +327,6 @@ for i in range(0,len(Array)):
     #calculate the phase distribuiton
     phi_i = getPhaseDisrt_i(d1, d2, d3) #phase contribution due to the ray propagation
     
-    print(phi_i)
     #calculate the phase distribution along the central row of the illuminating array
     phi_a[i] = -phi_i + const #50 is an arbitrary constant to center the phase to 0
     
@@ -337,7 +343,7 @@ fig.set_dpi(300)
 ax = fig.add_subplot(111)
 
 plt.plot(Array,phi_a)
-plt.title('Phase distribution for $\u03B8_o$=' + str(output_angle))
+plt.title('Direct: Phase distribution for $\u03B8_o$=' + str(output_angle))
 # plt.plot(Array,phi_a[0][:], Array,phi_a[1][:], Array,phi_a[2][:])
 ax.set_aspect(1, adjustable='box')
 plt.ylim([-90,90])

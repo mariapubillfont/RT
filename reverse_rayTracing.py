@@ -18,24 +18,23 @@ Array = np.linspace (-L/2, L/2, N)
 d_Array_m = Array[1] - Array[0] #measured interelement distance
 
 #what you have to change
-theta_o_y = 0
+theta_o_y = 80
 
 theta_o_x = np.deg2rad(90 -  theta_o_y) #incident angle with respect to x axis
 angle_in = []
 m_max = 10000
-spacing=100
+spacing=200
 
 
 
 # const is a constant in order to center the phase distribution to the center
 if theta_o_y == 80: #80
-    const = 245
-    y1=230
+    const = 587
+    y1=400
     
 elif theta_o_y == 40: #40  
-    print('entra')   
-    const = 175
-    y1=0
+    const = 344
+    y1= -400
    
 elif theta_o_y == 0: #broadside
     const = 191.5
@@ -58,6 +57,7 @@ k0 = 2*np.pi/wv #propagation constant in free space
 phi_a = []
 phi_array = []
 xy_min = []
+j=0
 
 #=============================================================================
 def f(hi, ci, ki, p): #defining the surface shapes as conics
@@ -66,17 +66,17 @@ def f(hi, ci, ki, p): #defining the surface shapes as conics
 
 
 #=============================================================================
-def getSurfacePoints(s):
-    
+def getSurfacePoints(s,p):
+    array = []
     spoints=[]
     index = 0
-    for i in range(0,len(s)):
+    for i in range(0,len(s)-1):
         if(i%spacing==0): 
             spoints = np.append(spoints, s[i]) 
-            
+            array = np.append(array, p[i])
+           
         index += index
-        
-    return spoints
+    return spoints, array
 #=============================================================================
 
 
@@ -154,11 +154,11 @@ def findIntersection(f1, f2, m):
                 break
     if 1:
         idx = np.argwhere(np.diff(np.sign(f1[:]-f2[:]))).flatten()
-        # if len(idx)==0: 
-        #     print('buit')
-        #     x=0
-        #     y=0
-        #     return
+        if len(idx)==0: 
+            print('buit')
+            x=0
+            y=0
+            return x,y
         if len(idx) == 1:
             idx = idx[0]
             x = p[idx]
@@ -178,8 +178,9 @@ surface2 = f(h2, c2, k2, p)
 surface2 = np.where(surface2>0, surface2, 0.)
 zero_line = np.zeros(len(p))
 
-p_points = np.linspace(-D, D, int(10000/spacing)) 
-surface_points = getSurfacePoints(surface2)
+# p_points = np.linspace(-D, D, int(10000/spacing)) 
+[surface_points, p_points] = getSurfacePoints(surface2, p)
+
 for i in range(0, len(surface_points)):
     if surface_points[i] != 0 and surface_points[i-1] == 0: surface_min = p_points[i]
     if  surface_points[i] != 0 and surface_points[i+1] == 0: surface_max = p_points[i]
@@ -218,21 +219,25 @@ yi_3_array = (690, 690, 690, 690, 690)
 
 
 #for i in range(0,len(Array)):
-for i in range(0, len(surface_points)-1):    
+for i in range(0, len(p_points)):    
 # for i in range(0, len(xi_3_array)):     
     
     ## ray 1 -> from Array to surface1 (first dome surface)
     ## ray 2 -> from surface1 to surface2 (second dome surface)
     ## ray 3 -> from surface 2 to air
-        
-    # #x1=Array[i] #points of the array
     
+        
     #construct the line equation of ray3
     x1 = p_points[i]
-    y1 = surface_points[i]
+
+    # y1 = surface_points[i]
+    aux = m_max*(p-x1)+y1
+    # plt.plot(p_points[i], surface_points[i], 'x')
+    # plt.plot(p, aux)
+    # plt.plot(x1, y1, 'x')
     m3 = np.tan(theta_o_x)
     ray3 = m3*(p-x1)+y1
-    # plt.plot(p, ray3)
+    # plt.plot(p, ray3, color='blue', linewidth = 0.5)
    
     # find the aperture plane (perpendicular to the radiation direction)
     m_t = -1./m3
@@ -240,15 +245,19 @@ for i in range(0, len(surface_points)-1):
         x_r_max =  np.cos(theta_o_x)*h2*2 + surface_max
     else:
         x_r_max =  np.cos(theta_o_x)*h2*2 + surface_min
-    y_r_max = abs(np.sin(theta_o_x))*h2*2 + 0 
+    y_r_max = abs(np.sin(theta_o_x))*h2*2 +y1
     
   
     ray3_perp =  m_t*(p - x_r_max) + y_r_max
     # plt.plot(x_r_max, y_r_max, 'x')
-    # plt.plot(p,ray3_perp)
+    # plt.plot(p,ray3_perp, color='green')
     [xi_2,yi_2] = findIntersection(ray3, surface2, m3) #intersection between ray3 and surface2
-    # plt.plot(xi_2, yi_2, 'x')
+    if ( [xi_2,yi_2] == [0,0]): 
+        print('**** There is not intersection between ray 3 and surface 2 ****')      
+        continue
+    
     # print(i)
+    # plt.plot(xi_2, yi_2, 'x')
     [xi_3,yi_3] = findIntersection(ray3, ray3_perp, m3) #intersection between ray3 and aperture plane
     plt.plot([xi_3,xi_2],[yi_3,yi_2], color='black', linewidth = 0.5) #plot the final part, from the surface 2 to the air
     
@@ -327,6 +336,8 @@ for i in range(0, len(surface_points)-1):
 
     # calculate the phase distribution along the central row of the illuminating array
     if abs(x0) <= max(Array):
+        j = j+1
+
         plt.plot([x0,xi],[y0,yi], color='red', linewidth = 0.5)
         plt.plot([xi,xi_2],[yi,yi_2], color='red', linewidth = 0.5)
         plt.plot([xi_3,xi_2],[yi_3,yi_2], color='red', linewidth = 0.5)
@@ -334,76 +345,59 @@ for i in range(0, len(surface_points)-1):
         angle_in = np.append(angle_in, getTheta_btw(m, m_max)*180/np.pi)
         phi_a = np.append(phi_a, -phi_i + const  )
         phi_array = np.append(phi_array , x0)
+        
+        
+        if j == 1: 
+            x_rmin = xi_3
+            x_lmin = x0
+            y_rmin = yi_3
+            y_lmin = y0
+            plt.plot(x_rmin, y_rmin,'x', color='black')
+            plt.plot(x_lmin, y_lmin, 'x', color='blue')
+        # if j == N:
+        x_rmax = xi_3
+        x_lmax = x0
+        y_rmax = yi_3
+        y_lmax = y0
 
     
      #calculation of the effective length, and magnification
-    if i == 0: 
-        print('entra')
-        x_rmin = xi_3
-        x_lmin = x1
-        y_rmin = yi_3
-        y_lmin = y1
-    if i == N-1:
-        print('entra2')
-        x_rmax = xi_3
-        x_lmax = x1
-        y_rmax = yi_3
-        y_lmax = y1
-        plt.plot(x_lmax, y_lmax, '.')
-        Leff = distance([x_rmin, y_rmin], [x_rmax, y_rmax]) #effective length at the aperture plane
-        Lproj = distance([x_lmin, y_lmin], [x_lmax, y_lmax]) #length of the array
-        M = Leff / (Lproj*np.cos(np.deg2rad(theta_o_y))) #magnification  
-        print(M)
+
+    
+plt.plot(x_lmax, y_lmax, 'x', color='green')
+plt.plot(x_rmax, y_rmax, 'x', color='pink')
+    
+Leff = distance([x_rmin, y_rmin], [x_rmax, y_rmax]) #effective length at the aperture plane
+Lproj = distance([x_lmin, y_lmin], [x_lmax, y_lmax]) #length of the array
+M = Leff / (Lproj*np.cos(np.deg2rad(theta_o_y))) #magnification  
 
 
-
-# L_eff[j] = distance([xy_min[0], xy_min[1]], [x_r_max, y_r_max])
-# L_project[j] = L*np.cos(theta_o_y[j]*np.pi/180)
-# M[j] = L_eff[j] / L_project[j]  
-
-# print(angle_in[0])
-# print(angle_in[len(angle_in)//2])
-# print(angle_in[len(angle_in)-1])
 
 plt.grid()
 #plt.show()
   
 
 #plot input angles
-# fig = plt.figure(2)
-# fig.set_dpi(300)
-# plt.plot(phi_array, angle_in)
-# plt.xticks([-L/2, -L/4, 0, L/4, L/2], ['-L/2', '-L/4', '0', 'L/4', 'L/2'])
+fig = plt.figure(2)
+fig.set_dpi(300)
+plt.plot(phi_array, angle_in)
+plt.xticks([-L/2, -L/4, 0, L/4, L/2], ['-L/2', '-L/4', '0', 'L/4', 'L/2'])
 
 
 # plot the phase distribution
-# fig = plt.figure(3)
-# fig.set_dpi(300)
-# ax = fig.add_subplot(111)
-# plt.rcParams['font.size'] = '9'
-# plt.plot(phi_array, phi_a)
-# ax.set_aspect(4, adjustable='box')
+fig = plt.figure(3)
+fig.set_dpi(300)
+ax = fig.add_subplot(111)
+plt.rcParams['font.size'] = '9'
+plt.plot(phi_array, phi_a)
+ax.set_aspect(4, adjustable='box')
 
-# plt.yticks([-80, -40, 0, 40, 80], ['-80', '-40', '0', '40', '80'])
-# plt.xticks([-L/2, -L/4, 0, L/4, L/2], ['-L/2', '-L/4', '0', 'L/4', 'L/2'])
-# plt.ylim([-90,90])
-# plt.title('Phase distribution for $\u03B8_o$=' + str(theta_o_y))
-# plt.ylabel('$\phi_a$ (rad)' )
-# plt.xlabel('x (mm)')
-# plt.rcParams["font.family"] = "Times New Roman"    
-
-
-
+plt.yticks([-80, -40, 0, 40, 80], ['-80', '-40', '0', '40', '80'])
+plt.xticks([-L/2, -L/4, 0, L/4, L/2], ['-L/2', '-L/4', '0', 'L/4', 'L/2'])
+plt.ylim([-90,90])
+plt.title('Reverse: Phase distribution for $\u03B8_o$=' + str(theta_o_y))
+plt.ylabel('$\phi_a$ (rad)' )
+plt.xlabel('x (mm)')
+plt.rcParams["font.family"] = "Times New Roman"    
 plt.grid()    
-# fig = plt.figure(2)
-# fig.set_dpi(300)
-# ax = fig.add_subplot(111)
-# plt.plot(Array,phi_a[0][:], Array,phi_a[1][:], Array,phi_a[2][:])
-# ax.legend([theta_o_y[0], theta_o_y[1], theta_o_y[2] ], title = '$\Theta_o$')
-# ax.set_aspect(1, adjustable='box')
-# plt.ylim([-90,90])
-# plt.ylabel('$\phi_a$ (rad)' )
-# plt.xlabel('x (mm)')
-# plt.rcParams["font.family"] = "Times New Roman"    
-# plt.grid()    
-     
+
