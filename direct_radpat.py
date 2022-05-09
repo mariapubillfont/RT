@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sympy as sym
 from sympy import Symbol
-import math
+from math import e
 from scipy.interpolate import interp1d
 # import radPat
 
@@ -14,7 +14,7 @@ from scipy.interpolate import interp1d
 # parameters to define the Array
 L = 690 #length of the Array (hmax = L/3) (defined in the paper)
 diagonal  = np.sqrt(pow(690,2)+pow(690,2))
-N = 10 #number of elements of the Array
+N =100 #number of elements of the Array
 d_Array = 9 # element periodicity, in mm (defined in the paper)
 d_gp = 8.4 #distance from the ground plane (defined in the paper)
 Array = np.linspace (-L/2, L/2, N)
@@ -267,11 +267,7 @@ for i in range(0,len(Array)):
     
     # calculate the equation line of normal to the second surface  
     m_n2 = findNormal(xi_2, yi_2, c2, k2, h2) #find the normal of surface 2 in the intersection point 2
-    # normalToSurface = m_n2*(p-xi_2) + yi_2
 
-    
-    
-    
     # calculate the angle out
     theta_inc2 = getTheta_btw(m_n2, m2)
     theta_out2 = snell(theta_inc2, n2, n1) #get angle_out with respect to the normal
@@ -371,14 +367,35 @@ for i in range(0,len(Array)):
 rk =[0, 1000]
 plt.plot(0, 1000, 'x')
 q = 0.1
-    
-for i in range(0,len(Ak_ap)): 
-    distance_rk = np.sqrt((rk[0]-Pk_ap[i+2][0])**2 + (rk[1]-Pk_ap[i+2][1])**2)
-    rk_vector = getUnitVector(Pk_ap[i+2][0], Pk_ap[i+2][1], rk[0], rk[1])
-    Ek = (sk[i+1][0]*rk[0] + sk[i+1][1]*rk[1])**0.1
-    plt.quiver(Pk_ap[i+2][0], Pk_ap[i+2][1], rk_vector[0], rk_vector[1], color=['blue'], scale=15)
-    # E = Ek*Ak_ap[i]*(e**(-j*k0*(distance_rk + path_length[i])))
+z = e**3j
+z = complex(k0)
+angle_step = 0.1
+theta = np.arange(-np.pi/2, np.pi/2, angle_step)
+# theta = np.linspace(0, np.pi,6)
 
+distance_rk =1000
+Etotal = []
+E=0
+
+for j in range(0, len(theta)):
+    m = np.tan(theta[j])
+    observer = m*p
+    # plt.plot(p, observer)
+    xrk = np.cos(theta[j])*distance_rk
+    yrk = abs(np.sin(theta[j])*distance_rk)
+    # print(distance([0,0], [xrk,yrk]))              
+    plt.plot(xrk, yrk, 'x', color = 'red')
+    E=0
+    for i in range(0,len(Ak_ap)): 
+        # distance_rk = np.sqrt((rk[0]-Pk_ap[i+2][0])**2 + (rk[1]-Pk_ap[i+2][1])**2)
+        rk_vector = getUnitVector(Pk_ap[i+2][0], Pk_ap[i+2][1], xrk, yrk)
+        Ek = (sk[i+1][0]*rk_vector[0] + sk[i+1][1]*rk_vector[1])**0.1
+        # plt.quiver(Pk_ap[i+2][0], Pk_ap[i+2][1], rk_vector[0], rk_vector[1], color=['blue'], scale=15)
+        E += Ek*Ak_ap[i]*(e**-complex(k0*(distance_rk + path_length[i])))/distance_rk*\
+        (nk[i+2][0]*sk[i+2][0] + nk[i+2][1]*sk[i+2][1] + nk[i+2][0]*rk_vector[0] + nk[i+2][1]*rk_vector[1])*dck[i]
+    Etotal = np.append(Etotal, E)
+    
+        
 
 
 
@@ -393,10 +410,14 @@ plt.show()
     
       
         
-# #plot the phase distribution
-# fig = plt.figure(2)
-# fig.set_dpi(300)
-# ax = fig.add_subplot(111)
+#plot the phase distribution
+fig = plt.figure(2)
+fig.set_dpi(300)
+ax = fig.add_subplot(111)
+plt.plot(theta*180/np.pi, 20*np.log(Etotal))
+plt.title('Normalized Pattern')
+plt.xlabel('$\u03B8 $ degrees')
+plt.ylabel('dB')
 
 # plt.plot(Array,phi_a)
 # plt.title('Direct: Phase distribution for $\u03B8_o$=' + str(output_angle))
