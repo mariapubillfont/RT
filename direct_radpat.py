@@ -8,6 +8,7 @@ import sympy as sym
 from sympy import Symbol
 import math
 from scipy.interpolate import interp1d
+# import radPat
 
 
 # parameters to define the Array
@@ -24,9 +25,11 @@ x = np.linspace(-L/2, L/2, 12)
 
 
 theta_i_y = np.zeros(N)
-for i in range(0, N): theta_i_y[i] = 00
+for i in range(0, N): theta_i_y[i] = 0
 const=0
 long = 300
+nk = np.zeros([N,2]) #normal of the aperture
+sk = np.zeros([N,2]) #pointying vector
 Ak = np.ones(N)
 Ak_ap = []
 Pk = np.zeros([N,2])
@@ -34,7 +37,7 @@ Pk_ap = np.zeros([N,2])
 path_length = []
 dLk = []   
 theta_k = []
-  
+dck = []
     
 # parameters to define the conic shapes of the dome (all parameters defined in the paper)
 c1 = -0.0021
@@ -167,19 +170,19 @@ def distance(pointA, pointB):
 #==================================================
 
 
-
-def getUnitVector(x,y,m):
-    
-    
-    
-    
-    return([p1,p2])
+#=============================================================================
+def getUnitVector(x1,y1, x2, y2):
+    vector=[x2-x1, y2-y1]
+    norma = np.sqrt((x2-x1)**2 + (y2-y1)**2)
+    u = vector/norma
+    return(u)
+#=============================================================================
 
 #=============================================================================
 def getAmplitude(Pk, Pk1, Pk_ap, Pk_ap1, theta): #get the amplitude of the E field at the aperture plane.
     dLk = distance(Pk, Pk1)/2
     dck_ap = distance(Pk_ap, Pk_ap1)/2
-    return np.sqrt(dLk/(dck_ap*np.cos(theta)))
+    return np.sqrt(dLk/(dck_ap*np.cos(theta))), dck_ap
 # =============================================================================
 
 
@@ -233,7 +236,6 @@ for i in range(0,len(Array)):
     x1=Array[i]
     y1=0
     
-    Pk[i] = [x1, y1]
     
     m = m_max if theta_i_x == np.pi/2 else np.tan(theta_i_x)   
     ray1 = m*(p-x1)+y1   
@@ -263,32 +265,32 @@ for i in range(0,len(Array)):
         import sys; sys.exit()
 
     
-    # #calculate the final angle out  
+    # calculate the equation line of normal to the second surface  
     m_n2 = findNormal(xi_2, yi_2, c2, k2, h2) #find the normal of surface 2 in the intersection point 2
-    rayprova = m_n2*(p-xi_2) + yi_2
-    # plt.plot(p, rayprova, color='red', linewidth = 0.5)
+    # normalToSurface = m_n2*(p-xi_2) + yi_2
+
+    
+    
+    
+    # calculate the angle out
     theta_inc2 = getTheta_btw(m_n2, m2)
     theta_out2 = snell(theta_inc2, n2, n1) #get angle_out with respect to the normal
     theta_out_x2 = getTheta_btw(0,m_n2) + theta_out2  #get angle out with respect to the x axis
     if getTheta_btw(0,m_n2) < 0: #special case for negative normals
-        theta_out_x2 = np.pi + theta_out_x2
-    
+        theta_out_x2 = np.pi + theta_out_x2 
     critical = getTheta_i_max(m_n, m_n2, theta_i_y[i]) #calulate the critical angle 
     if critical > theta_i_x and theta_i_y[i] > 0 or critical < theta_i_x and theta_i_y[i] < 0 : 
         print('Critical angle for element ', i+1)
         continue
     
-   
-    
+ 
+    #line equation that defines the ray 3 (from surface 2 to air)
     m3 = np.tan(theta_out_x2)
     ray3 = m3*(p-xi_2)+yi_2
     
     
-    plt.plot( xi_2,yi_2,'x')
+
     if 0: #case that we want an aperture plane
-        #line equation that defines the ray 3 (from surface 2 to air)
-        
-            
         # find the aperture plane
         m_t = -1./m3
         if theta_i_y[i] >= 0:    
@@ -301,27 +303,11 @@ for i in range(0,len(Array)):
         angle_out = np.append(angle_out, getTheta_btw(m3, m_max)*180/np.pi)
 
     
-    
+    #final point of the ray 3. Arbitrarly chosen, the height of this point is defined by "long"
     x4 = (np.cos(theta_out_x2)*long  +xi_2)
     y4 = abs(np.sin(theta_out_x2)*long) + yi_2
-    plt.plot(x4,y4,'x', color='red')
+    # plt.plot(x4,y4,'x', color='red')
     plt.plot([x4,xi_2],[y4,yi_2], color='black', linewidth = 0.5)
-    
-    Pk_ap[i]=[x4, y4]
-    # plt.plot(Pk_ap[i], 'x', color = 'pink')
-    # plt.plot(Pk[i][0], Pk[i][1], 'x', color = 'red')
-    
-    
-    vector=[x4-xi_2, y4-yi_2]
-    norma = np.sqrt((x4-xi_2)**2 + (y4-yi_2)**2)
-    vector_u = vector/norma
-    # print(vector)
-    # print(vector/vector_u)
-    # plt.quiver([0,0], vector/vector_u, scale=1)
-    coordinates = np.array([[2, 5], [1, 4]])
-    o = np.array([[0, 0], [0, 0]])
-    plt.quiver(xi_2, yi_2, vector_u[0], vector_u[1], color=['blue'], scale=15)
-
     
     #calculation of the effective length, and magnification
     if i == 0: 
@@ -345,28 +331,63 @@ for i in range(0,len(Array)):
         # plt.plot(x_rmax, y_rmax, 'x', color='pink')
 
     
-    
-    # calculate the distances of each ray
+    # calculate the distances of each ray -> calculate the phase distribution
     d1 = distance([x1, y1],[xi, yi])
     d2 = distance([xi, yi],[xi_2, yi_2])     
     d3 = distance([xi_2, yi_2],[x4, y4])
-    path_length = np.append(path_length, d1+d2)
-    
-            
     #calculate the phase distribuiton
     phi_i = getPhaseDisrt_i(d1, d2, d3) #phase contribution due to the ray propagation
-    
     #calculate the phase distribution along the central row of the illuminating array
     phi_a[i] = -phi_i + const #50 is an arbitrary constant to center the phase to 0
     
+    
+    #to calculate the amplitude at the surface 2 ---------------------------------------
+    Pk[i] = [x1, y1] #points of the rays at the array
+    Pk_ap[i]=[xi_2, yi_2] #points of the rays at the lens aperture (surface 2)
+    # plt.plot(Pk_ap[i], 'x', color = 'pink')
+    # plt.plot(Pk[i][0], Pk[i][1], 'x', color = 'red')
+
+    sk[i] = getUnitVector(xi_2, yi_2, x4, y4) # poyinting vector: the direction of the ray
+    # plt.quiver(xi_2, yi_2, sk[i][0], sk[i][1], color=['blue'], scale=15)
+        
+    yp = h2*2 #aribitrary point in the space that fullfils the equation of the normal. We need it to calculate the unitary normal vector
+    xp = (yp + m_n2*xi_2 - yi_2)/m_n2 #the x coordinates that fullfils the equation of the normal
+    nk[i] = getUnitVector(xi_2, yi_2, xp, yp) #get the unitary vector of the normal to the surface nk
+    
     theta_k = np.append(theta_k, getTheta_btw(m_n2, m3))
     
-    if i>1:
-        Ak_ap = np.append(Ak_ap, Ak[i-1]*getAmplitude(Pk[i-2], Pk[i], Pk_ap[i-2], Pk_ap[i], theta_k[i-1]))
+    if i>1: #calculating the amplitudes
+        path_length = np.append(path_length, d1+d2)
 
+        a = getAmplitude(Pk[i-2], Pk[i], Pk_ap[i-2], Pk_ap[i], theta_k[i-1])
+        Ak_ap= np.append(Ak_ap,Ak[i-1]*a[0])
+        dck = np.append(dck, a[1])
     
+        
+        # plt.plot(Pk_ap[i][0], Pk_ap[i][1], 'x')    
+# radPat.getRadiationPattern(Ak_ap, path_length, nk, sk, dck, Pk_ap)
 
+
+rk =[0, 1000]
+plt.plot(0, 1000, 'x')
+q = 0.1
     
+for i in range(0,len(Ak_ap)): 
+    distance_rk = np.sqrt((rk[0]-Pk_ap[i+2][0])**2 + (rk[1]-Pk_ap[i+2][1])**2)
+    rk_vector = getUnitVector(Pk_ap[i+2][0], Pk_ap[i+2][1], rk[0], rk[1])
+    Ek = (sk[i+1][0]*rk[0] + sk[i+1][1]*rk[1])**0.1
+    plt.quiver(Pk_ap[i+2][0], Pk_ap[i+2][1], rk_vector[0], rk_vector[1], color=['blue'], scale=15)
+    # E = Ek*Ak_ap[i]*(e**(-j*k0*(distance_rk + path_length[i])))
+
+
+
+
+
+
+
+
+
+
 plt.grid()
 plt.show()
     
