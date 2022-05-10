@@ -14,7 +14,7 @@ from scipy.interpolate import interp1d
 # parameters to define the Array
 L = 690 #length of the Array (hmax = L/3) (defined in the paper)
 diagonal  = np.sqrt(pow(690,2)+pow(690,2))
-N =100 #number of elements of the Array
+N = 200#number of elements of the Array
 d_Array = 9 # element periodicity, in mm (defined in the paper)
 d_gp = 8.4 #distance from the ground plane (defined in the paper)
 Array = np.linspace (-L/2, L/2, N)
@@ -351,9 +351,10 @@ for i in range(0,len(Array)):
     nk[i] = getUnitVector(xi_2, yi_2, xp, yp) #get the unitary vector of the normal to the surface nk
     
     theta_k = np.append(theta_k, getTheta_btw(m_n2, m3))
+    path_length = np.append(path_length, d1+d2)
     
     if i>1: #calculating the amplitudes
-        path_length = np.append(path_length, d1+d2)
+        
 
         a = getAmplitude(Pk[i-2], Pk[i], Pk_ap[i-2], Pk_ap[i], theta_k[i-1])
         Ak_ap= np.append(Ak_ap,Ak[i-1]*a[0])
@@ -369,30 +370,34 @@ plt.plot(0, 1000, 'x')
 q = 0.1
 z = e**3j
 z = complex(k0)
-angle_step = 0.1
-theta = np.arange(-np.pi/2, np.pi/2, angle_step)
-# theta = np.linspace(0, np.pi,6)
+# angle_step = 
+# theta = np.arange(0, np.pi, angle_step)
+theta = np.linspace(0, np.pi,50)
 
-distance_rk =1000
+distance_rk0 =1000
 Etotal = []
 E=0
-
 for j in range(0, len(theta)):
     m = np.tan(theta[j])
     observer = m*p
     # plt.plot(p, observer)
-    xrk = np.cos(theta[j])*distance_rk
-    yrk = abs(np.sin(theta[j])*distance_rk)
+    xrk = np.cos(theta[j])*distance_rk0
+    yrk = abs(np.sin(theta[j])*distance_rk0)
     # print(distance([0,0], [xrk,yrk]))              
     plt.plot(xrk, yrk, 'x', color = 'red')
     E=0
     for i in range(0,len(Ak_ap)): 
-        # distance_rk = np.sqrt((rk[0]-Pk_ap[i+2][0])**2 + (rk[1]-Pk_ap[i+2][1])**2)
-        rk_vector = getUnitVector(Pk_ap[i+2][0], Pk_ap[i+2][1], xrk, yrk)
+        rk_vector = getUnitVector(Pk_ap[i+1][0], Pk_ap[i+1][1], xrk, yrk)
+        plt.plot(Pk_ap[i+1][0], Pk_ap[i+1][1], 'x', color='green')
+        rk_distance = np.sqrt((xrk-Pk_ap[i+1][0])**2 + (yrk-Pk_ap[i+1][1])**2)
+
         Ek = (sk[i+1][0]*rk_vector[0] + sk[i+1][1]*rk_vector[1])**0.1
-        # plt.quiver(Pk_ap[i+2][0], Pk_ap[i+2][1], rk_vector[0], rk_vector[1], color=['blue'], scale=15)
-        E += Ek*Ak_ap[i]*(e**-complex(k0*(distance_rk + path_length[i])))/distance_rk*\
-        (nk[i+2][0]*sk[i+2][0] + nk[i+2][1]*sk[i+2][1] + nk[i+2][0]*rk_vector[0] + nk[i+2][1]*rk_vector[1])*dck[i]
+        print(sk[i+1], rk_vector, Ek)
+    
+        # plt.quiver(Pk_ap[i+1][0], Pk_ap[i+1][1], sk[i+1][0], sk[i+1][1], color=['blue'], scale=15)
+        # plt.quiver(Pk_ap[i+1][0], Pk_ap[i+1][1], rk_vector[0], rk_vector[1], color=['blue'], scale=15)
+        E += Ek*Ak_ap[i]*(e**-complex(k0*(rk_distance + path_length[i+1])))/rk_distance*\
+        (nk[i+1][0]*sk[i+1][0] + nk[i+1][1]*sk[i+1][1] + nk[i+1][0]*rk_vector[0] + nk[i+1][1]*rk_vector[1])*dck[i]
     Etotal = np.append(Etotal, E)
     
         
@@ -406,7 +411,7 @@ for j in range(0, len(theta)):
 
 
 plt.grid()
-plt.show()
+# plt.show()
     
       
         
@@ -414,10 +419,11 @@ plt.show()
 fig = plt.figure(2)
 fig.set_dpi(300)
 ax = fig.add_subplot(111)
-plt.plot(theta*180/np.pi, 20*np.log(Etotal))
+plt.plot(theta*180/np.pi, 20*np.log(abs(Etotal))/max(abs(Etotal)))
 plt.title('Normalized Pattern')
 plt.xlabel('$\u03B8 $ degrees')
 plt.ylabel('dB')
+# plt.xticks([-L/2, -L/4, 0, L/4, L/2], ['-L/2', '-L/4', '0', 'L/4', 'L/2'])
 
 # plt.plot(Array,phi_a)
 # plt.title('Direct: Phase distribution for $\u03B8_o$=' + str(output_angle))
