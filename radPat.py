@@ -6,61 +6,7 @@ Created on Mon May  9 11:29:39 2022
 """
 import numpy as np
 import matplotlib.pyplot as plt
-
-
-theta = 0
-Ak_ap = np.array([0.940926, 0.961937, 0.979777, 0.989435, 0.989432, 0.979797, 0.961961, 0.940959])
-dCk = np.array([86.9274,83.0587,79.9477,78.323,78.3225,79.9463,83.0564,86.9242])
-rayL = np.array([314.457, 326.682, 335.695, 341.661, 344.63, 344.631, 341.672, 335.711, 326.709 ,314.496])
-nk = np.transpose(np.array([[-0.174346, -0.136268, -0.0976163, -0.0585473, -0.0194465, 0.0197467, 0.058122, 0.0973439, 0.135965, 0.173961], [0.984684, 0.990672, 0.995224, 0.998285, 0.999811, 0.999805, 0.998309, 0.995251, 0.990714, 0.984753]]))
-sk = np.array([[-0.268714,	0.96322], [-0.22222,	0.974997], [-0.167206,	0.985922], [-0.104074,	0.99457], [-0.0356668,	0.999364], [0.0351997,	0.99938], [0.104173,	0.994559], [0.16725,	0.985914], [0.222298,	0.974979],[0.268814,	0.963192]])
-
-
-
-# parameters to define the conic shapes of the dome (all parameters defined in the paper)
-c1 = -0.0021
-c2 = -0.0005
-k1 = -1.2
-k2 = -3.9
-h1 = 325
-h2 = 345
-
-D = 1500.
-p = np.linspace(-D, D, 10000) 
-er = 2.5
-n2 = np.sqrt(er) #dielectric refractive index
-n1 = 1. #air refractive indeix 
-wv = 23. # wavelength in mm (defined in the paper)
-k0 = 2*np.pi/wv #propagation constant in free space
-phi_a = np.zeros(N)
-theta_i_x_arr = np.deg2rad(90-theta_i_y)
-angle_out = []
-m_max = 10000
-fig = plt.figure(1)
-fig.set_dpi(300)
-ax = fig.add_subplot(111)
-plt.plot(p, surface1, color='grey')
-plt.plot(p, surface2, color='grey')
-ax.set_aspect(1, adjustable='box')
-ax.fill_between(p, surface1, surface2, color = 'lightgrey')
-plt.ylim([0,h2*3])
-plt.ylabel('z (mm)' )
-plt.xlabel('x (mm)')
-plt.rcParams["font.family"] = "Times New Roman"
-#plt.plot(Array, np.zeros(N), 'o', color='black')
-
-
-if 1:
-    surface1 = f(h1, c1, k1, p)
-    surface1 = np.where(surface1>0, surface1, 0.)
-    # np.savetxt('surface1.csv', surface1, delimiter=',')
-    
-        
-    surface2 = f(h2, c2, k2, p)
-    surface2 = np.where(surface2>0, surface2, 0.)
-    # np.savetxt('surface2.csv', surface2, delimiter=',')
-    
-
+import input as I
 
 
 #=============================================================================
@@ -72,15 +18,70 @@ def getUnitVector(x1,y1, x2, y2):
 #=============================================================================
 
 
-def getRadiationPattern(Ak_ap, rayL, nk, sk, dCk, Pk_ap):
-    rk =[0, 1000]
-    plt.plot(0, 1000, 'x')
+def norma(u):
+    return np.sqrt(u[0]**2 + u[1]**2)
+
+def getRadiationPattern(Ak_ap, path_length, nk, sk, dCk, Pk_ap):
     
-    for i in range(0,len(Ak_ap)): 
-        rk_vector = getUnitVector(Pk_ap[i+2][0], Pk_ap[i+2][1], rk[0], rk[1])
-        Ek = 
-        # plt.quiver(Pk_ap[i+2][0], Pk_ap[i+2][1], rk_vector[0], rk_vector[1], color=['blue'], scale=15)
-        E = Ak_ap[i]
+    q = 0.1
+    theta = np.linspace(0, np.pi, 400)
+    R_obs =1.E9
+    E = np.zeros(len(theta),complex)
+    # print(Pk_ap)
+    if 0:
+        for j in range(0, len(theta)):
+        
+            xrj = np.cos(theta[j])*R_obs
+            yrj = np.sin(theta[j])*R_obs
+            
+            E[j]=0.
+            for k in range(0,len(Ak_ap)): 
+                urkj_vector = getUnitVector(Pk_ap[k+1][0], Pk_ap[k+1][1], xrj, yrj)
+                # plt.plot(Pk_ap[i+1][0], Pk_ap[i+1][1], 'x', color='green')
+                rkj_distance = np.sqrt((xrj-Pk_ap[k+1,0])**2 + (yrj-Pk_ap[k+1,1])**2)
+                # plt.quiver(Pk_ap[i+1][0], Pk_ap[i+1][1], rkj_vector[0], rkj_vector[1], color = 'blue')
+                # plt.plot(Pk_ap[i+1][0], Pk_ap[i+1][1], 'x', color='blue')
+                # print(rkj_distance)
+                if 0:
+                    fig = plt.figure(1)
+                    fig.set_dpi(300)
+                    plt.ylabel('rk')
+                    plt.grid()
+                
+                Ek = sk[k+1,0]*urkj_vector[0] + sk[k+1,1]*urkj_vector[1]
+                Ek = np.where(Ek>0,Ek**q,0.)
+                
+                E[j] += Ek*Ak_ap[k]*(np.exp(-1j*I.k0*(rkj_distance + path_length[k+1])))/rkj_distance\
+                *(nk[k+1][0]*sk[k+1,0] + nk[k+1,1]*sk[k+1][1] - (nk[k+1,0]*urkj_vector[0]+nk[k+1,1]*urkj_vector[1]))*dCk[k]
+                                                                                                                     
+    if 1:
+        Ez = np.zeros(len(theta)) + 0.j
+        Xobs = np.cos(theta)*R_obs
+        Yobs = np.sin(theta)*R_obs
+        Xdip = Pk_ap[:,0]
+        Ydip = Pk_ap[:,1]
+        unvL = nk
+        for ii in range(len(Pk_ap[:,0])):
+            dR = np.zeros(len(theta))
+            vRx = Xobs[:]-Xdip[ii]
+            vRy = Yobs[:]-Ydip[ii]
+            dR = np.sqrt(vRx**2+vRy**2)  #Distance between sources and observation points.
+            uvRx = vRx/dR; uvRy = vRy/dR # Unit vector associated with vR
+            Gk = uvRx*unvL[ii,0] + uvRy*unvL[ii,1]
+            uvSx, uvSy = sk[ii,0], sk[ii,1]
+            Fk = uvSx*unvL[ii,0] + uvSy*unvL[ii,1]
     
+            if 1: #feed == 'dipole':
+                #uvSx, uvSy = np.cos(AoA[ii]), np.sin(AoA[ii])
+                # uvSx, uvSy = uvs[0,ii], uvs[1,ii]
+                # uvSx, uvSy = sk[ii,0], sk[ii,1]
+                Fcos = uvSx*uvRx + uvSy*uvRy
+                Fcos = np.where(Fcos<0,  0., Fcos**0.1)
+            else:
+                Fcos = np.ones_like(dR)
+            Ez[:] +=  Ak_ap[ii] * Fcos[:] * np.exp(-2j*np.pi*(path_length[ii]+dR[:])/I.wv) / (dR[:]) \
+                    * (Fk + Gk[:]) * dCk[ii]
+            # Ez[:] +=  Ak_ap[ii] * Fcos[:] * np.exp(-2j*np.pi*(path_length[ii]+dR[:])/I.wv) / (dR[:])    
+        # return Ez                                                                                                                 ]
     
-    return
+    return Ez, theta, dR

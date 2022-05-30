@@ -1,20 +1,26 @@
 # -*- coding: utf-8 -*-
 """
 maria pubill
+
+#in this version we include how to calculate the phase distribution
+we include how to proceed if we have an aperture plane : phase constant
+just step before of modulating
 """
 import numpy as np 
+import numba
 import matplotlib.pyplot as plt
 import sympy as sym
 from sympy import Symbol
 from math import e
 from scipy.interpolate import interp1d
+import radPat
 # import radPat
 
 
 # parameters to define the Array
 L = 690 #length of the Array (hmax = L/3) (defined in the paper)
 diagonal  = np.sqrt(pow(690,2)+pow(690,2))
-N = 200#number of elements of the Array
+N = 150#number of elements of the Array
 d_Array = 9 # element periodicity, in mm (defined in the paper)
 d_gp = 8.4 #distance from the ground plane (defined in the paper)
 Array = np.linspace (-L/2, L/2, N)
@@ -193,7 +199,7 @@ def getAmplitude(Pk, Pk1, Pk_ap, Pk_ap1, theta): #get the amplitude of the E fie
 #     return np.sqrt(dLk/(dck_ap*np.cos(theta)))
 # =============================================================================
 
-
+iplot = 0
 #defining the surfaces of the dome
 if 1:
     surface1 = f(h1, c1, k1, p)
@@ -242,11 +248,12 @@ for i in range(0,len(Array)):
     #plt.plot(p,ray1,color='pink')
     [xi,yi] = findIntersection(ray1, surface1, m)  #find the instersection between the ray1 and the surface 1 and plot ray 1   
     #print(xi,yi)
-    if [xi,yi] != [0,0]:
-        plt.plot([x1,xi],[y1,yi], color='black', linewidth = 0.5) #plot between the Array and the surface 1 (intersection 1)
-    else:
-        print('**** There is not intersection between surface1 and ray1 ****')
-        import sys; sys.exit()
+    if iplot:
+        if [xi,yi] != [0,0]:
+            plt.plot([x1,xi],[y1,yi], color='black', linewidth = 0.5) #plot between the Array and the surface 1 (intersection 1)
+        else:
+            print('**** There is not intersection between surface1 and ray1 ****')
+            import sys; sys.exit()
     
     # #calculate the angle_out 
     m_n = findNormal(xi, yi, c1, k1, h1) #find the normal of surface 1 in the intersection point 1
@@ -258,11 +265,12 @@ for i in range(0,len(Array)):
     m2 = np.tan(theta_out_x)
     ray2 = m2*(p-xi)+yi
     [xi_2,yi_2] = findIntersection(ray2, surface2, m2) #find the instersection between the ray2 and the surface 2 and plot ray 2
-    if [xi_2,yi_2] != [0,0]:
-        plt.plot([xi,xi_2],[yi,yi_2], color='black', linewidth = 0.5) #plot between the surface 1 and the surface 2 (intersection 2)
-    else:
-        print('**** There is not intersection between ray 2 and surface 2 ****')
-        import sys; sys.exit()
+    if iplot:
+        if [xi_2,yi_2] != [0,0]:
+            plt.plot([xi,xi_2],[yi,yi_2], color='black', linewidth = 0.5) #plot between the surface 1 and the surface 2 (intersection 2)
+        else:
+            print('**** There is not intersection between ray 2 and surface 2 ****')
+            import sys; sys.exit()
 
     
     # calculate the equation line of normal to the second surface  
@@ -303,7 +311,8 @@ for i in range(0,len(Array)):
     x4 = (np.cos(theta_out_x2)*long  +xi_2)
     y4 = abs(np.sin(theta_out_x2)*long) + yi_2
     # plt.plot(x4,y4,'x', color='red')
-    plt.plot([x4,xi_2],[y4,yi_2], color='black', linewidth = 0.5)
+    if iplot:
+        plt.plot([x4,xi_2],[y4,yi_2], color='black', linewidth = 0.5)
     
     #calculation of the effective length, and magnification
     if i == 0: 
@@ -360,83 +369,66 @@ for i in range(0,len(Array)):
         Ak_ap= np.append(Ak_ap,Ak[i-1]*a[0])
         dck = np.append(dck, a[1])
     
-        
+radPat.getRadiationPattern(Ak_ap, path_length, nk, sk, dck, Pk_ap)        
         # plt.plot(Pk_ap[i][0], Pk_ap[i][1], 'x')    
 # radPat.getRadiationPattern(Ak_ap, path_length, nk, sk, dck, Pk_ap)
 
+# def norma(u):
+#     return np.sqrt(u[0]**2 + u[1]**2)
 
-rk =[0, 1000]
-plt.plot(0, 1000, 'x')
-q = 0.1
-z = e**3j
-z = complex(k0)
-# angle_step = 
-# theta = np.arange(0, np.pi, angle_step)
-theta = np.linspace(0, np.pi,50)
+# rk =[0, 1000]
+# plt.plot(0, 1000, 'x')
+# q = 0.1
+# theta = np.linspace(0, np.pi,600)
+# distance_rk0 =1000000
+# Etotal = []
+# E=0
 
-distance_rk0 =1000
-Etotal = []
-E=0
-for j in range(0, len(theta)):
-    m = np.tan(theta[j])
-    observer = m*p
-    # plt.plot(p, observer)
-    xrk = np.cos(theta[j])*distance_rk0
-    yrk = abs(np.sin(theta[j])*distance_rk0)
-    # print(distance([0,0], [xrk,yrk]))              
-    plt.plot(xrk, yrk, 'x', color = 'red')
-    E=0
-    for i in range(0,len(Ak_ap)): 
-        rk_vector = getUnitVector(Pk_ap[i+1][0], Pk_ap[i+1][1], xrk, yrk)
-        plt.plot(Pk_ap[i+1][0], Pk_ap[i+1][1], 'x', color='green')
-        rk_distance = np.sqrt((xrk-Pk_ap[i+1][0])**2 + (yrk-Pk_ap[i+1][1])**2)
+# for j in range(0, len(theta)):
+#     m = np.tan(theta[j])
+#     observer = m*p
 
-        Ek = (sk[i+1][0]*rk_vector[0] + sk[i+1][1]*rk_vector[1])**0.1
-        print(sk[i+1], rk_vector, Ek)
-    
-        # plt.quiver(Pk_ap[i+1][0], Pk_ap[i+1][1], sk[i+1][0], sk[i+1][1], color=['blue'], scale=15)
-        # plt.quiver(Pk_ap[i+1][0], Pk_ap[i+1][1], rk_vector[0], rk_vector[1], color=['blue'], scale=15)
-        E += Ek*Ak_ap[i]*(e**-complex(k0*(rk_distance + path_length[i+1])))/rk_distance*\
-        (nk[i+1][0]*sk[i+1][0] + nk[i+1][1]*sk[i+1][1] + nk[i+1][0]*rk_vector[0] + nk[i+1][1]*rk_vector[1])*dck[i]
-    Etotal = np.append(Etotal, E)
-    
+#     xrk = np.cos(theta[j])*distance_rk0
+#     yrk = abs(np.sin(theta[j])*distance_rk0)
+
+#     E=0
+#     for i in range(0,len(Ak_ap)): 
+#         rk_vector = getUnitVector(Pk_ap[i+1][0], Pk_ap[i+1][1], xrk, yrk)
+#         # plt.plot(Pk_ap[i+1][0], Pk_ap[i+1][1], 'x', color='green')
+#         rk_distance = np.sqrt((xrk-Pk_ap[i+1][0])**2 + (yrk-Pk_ap[i+1][1])**2)
+
         
-
-
-
-
-
-
-
-
-
-plt.grid()
-# plt.show()
-    
-      
+#         angleEk = np.arccos((sk[i+1][0]*rk_vector[0] + sk[i+1][1]*rk_vector[1]))
+#         if angleEk <= np.pi/2: 
+#             Ek = (sk[i+1][0]*rk_vector[0] + sk[i+1][1]*rk_vector[1])**0.1 
+#         else: 
+#             Ek = 0
         
-#plot the phase distribution
-fig = plt.figure(2)
-fig.set_dpi(300)
-ax = fig.add_subplot(111)
-plt.plot(theta*180/np.pi, 20*np.log(abs(Etotal))/max(abs(Etotal)))
-plt.title('Normalized Pattern')
-plt.xlabel('$\u03B8 $ degrees')
-plt.ylabel('dB')
-# plt.xticks([-L/2, -L/4, 0, L/4, L/2], ['-L/2', '-L/4', '0', 'L/4', 'L/2'])
+#         E += Ek*Ak_ap[i]*(np.exp(-1j*k0*(rk_distance + path_length[i+1])))/rk_distance*\
+#         (nk[i+1][0]*sk[i+1][0] + nk[i+1][1]*sk[i+1][1] + nk[i+1][0]*rk_vector[0] + nk[i+1][1]*rk_vector[1])*dck[i]
+#     Etotal = np.append(Etotal, E)
 
-# plt.plot(Array,phi_a)
-# plt.title('Direct: Phase distribution for $\u03B8_o$=' + str(output_angle))
-# # plt.plot(Array,phi_a[0][:], Array,phi_a[1][:], Array,phi_a[2][:])
-# ax.set_aspect(1, adjustable='box')
-# plt.ylim([-90,90])
-# ax.set_aspect(4, adjustable='box')
 
-# plt.yticks([-80, -40, 0, 40, 80], ['-80', '-40', '0', '40', '80'])
-# plt.xticks([-L/2, -L/4, 0, L/4, L/2], ['-L/2', '-L/4', '0', 'L/4', 'L/2'])
-# # plt.ylim([-90,90])
-# plt.ylabel('$\phi_a$ (rad)' )
-# plt.xlabel('L (mm)')
-# plt.rcParams["font.family"] = "Times New Roman"    
-# plt.grid()    
-     
+
+
+# plt.grid()
+# # plt.show()
+    
+# # numba      
+        
+# #plot the phase distribution
+# fig = plt.figure(2)
+# fig.set_dpi(300)
+# ax = fig.add_subplot(111)
+# plt.plot(theta*180/np.pi - 90, 20*np.log(abs(Etotal)/max(abs(Etotal))))
+# plt.title('Normalized Pattern')
+# plt.xlabel('$\u03B8 $ degrees')
+# plt.ylabel('dB')
+# plt.xlim([-90, 90])
+# plt.ylim([-60, 0])
+# plt.grid()
+# # plt.xticks([0, 45, 90, 135, 180], ['-90', '-45', '0', '45', '90'])
+
+
+
+
