@@ -175,7 +175,7 @@ def getAmplitude(Pk, Pk1, Pk_ap, Pk_ap1, theta): #get the amplitude of the E fie
 
 def directRayTracing(surface1, surface2, theta_i_y):
     Array = np.linspace (-L/2, L/2, N)
-    theta_i_x_arr = np.deg2rad(90-theta_i_y)
+    theta_i_x_arr = np.deg2rad(90+theta_i_y)
     nk = np.zeros([N,2]) #normal of the aperture
     sk = np.zeros([N,2]) #pointying vector
     Ak = np.ones(N)
@@ -199,38 +199,40 @@ def directRayTracing(surface1, surface2, theta_i_y):
             
         #create the line equation of the ray 1 (from the Array to surface 1)
         x1=Array[i]
-        y1=0
+        # y1=-250
+        y1 = -400
         Pk[i] = [x1, y1] #save it inside an array
         
         
         
         m = m_max if theta_i_x == np.pi/2 else np.tan(theta_i_x)   
         m = np.tan(theta_i_x)
+    
         ray1 = m*(p-x1)+y1   
         [xi,yi] = findIntersection(ray1, surface1, m)  #find the instersection between the ray1 and the surface 1 and plot ray 1   
         # xi = x1 if theta_i_x == np.pi/2 else xi
+        # plt.plot(p,ray1,'red')
         Pk_intersection1[i] = [xi, yi]
         # print(m*(-345-x1)+y1)
     
-        
         # #calculate the angle_out 
         m_n = findNormal(xi, yi, c1, k1, h1) #find the normal of surface 1 in the intersection point 1
         theta_inc = getTheta_btw(m_n,m)
         theta_out = snell(theta_inc, n1, n2) #get angle_out with respect to the normal
-        theta_out_x = getTheta_btw(0,m_n) + theta_out #get angle out with respect to the x axis
+        theta_out_x = theta_out+getTheta_btw(0,m_n)   #get angle out with respect to the x axis
        
         #line equation that defines the ray 2 (from surface 1 to surface 2, inside the dielectric)
         m2 = np.tan(theta_out_x)
         ray2 = m2*(p-xi)+yi
         [xi_2,yi_2] = findIntersection(ray2, surface2, m2) #find the instersection between the ray2 and the surface 2 and plot ray 2
         Pk_ap[i]=[xi_2, yi_2] #points of the rays at the lens aperture (surface 2)
-
-        
+        # plt.plot(xi_2, yi_2, 'x')
+        # plt.plot(p,ray2, 'green')
         # calculate the equation line of normal to the second surface  
         m_n2 = findNormal(xi_2, yi_2, c2, k2, h2) #find the normal of surface 2 in the intersection point 2
     
         # calculate the angle out
-        theta_inc2 = getTheta_btw(m_n2, m2)
+        theta_inc2 = getTheta_btw(m_n2,m2)
         theta_out2 = snell(theta_inc2, n2, n1) #get angle_out with respect to the normal
         theta_out_x2 = getTheta_btw(0,m_n2) + theta_out2  #get angle out with respect to the x axis
         if getTheta_btw(0,m_n2) < 0: #special case for negative normals
@@ -244,6 +246,7 @@ def directRayTracing(surface1, surface2, theta_i_y):
         #line equation that defines the ray 3 (from surface 2 to air)
         m3 = np.tan(theta_out_x2)
         ray3 = m3*(p-xi_2)+yi_2
+        # plt.plot(p, ray3, 'blue')
     
         if 0: #case that we want an aperture plane
             # find the aperture plane
@@ -283,12 +286,13 @@ def directRayTracing(surface1, surface2, theta_i_y):
         
         
         deltai = (L - i*(L/N))*np.cos(theta_i_x)
-        
+        # print(theta_i_x*180/np.pi)
+        print(deltai)
         # calculate the distances of each ray -> calculate the phase distribution
         d1 = distance([x1, y1],[xi, yi]) - deltai
+        # print(d1)
         d2 = distance([xi, yi],[xi_2, yi_2])     
         d3 = distance([xi_2, yi_2],[x4, y4])
-        
         
         
         if 0:  # calculate the phase distribuiton
@@ -321,7 +325,8 @@ def directRayTracing(surface1, surface2, theta_i_y):
     # plt.xlabel('Array x(mm)')
     # plt.grid()   
     # plt.show()
-    
+
+
   
     # Ak_ap = Ak_ap*np.cos(theta_i_x)
     return Pk, Pk_intersection1, Pk_ap, Pk_final, sk, nk, path_length, Ak_ap, dck, theta_k , angle_out 

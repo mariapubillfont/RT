@@ -21,7 +21,7 @@ h2 = 345 #345
 
 N = 100
 D = 1500.
-p = np.linspace(-D, D, 1000000) 
+p = np.linspace(-D, D, 10000000) 
 er = 2.5
 n2 = np.sqrt(er) #dielectric refractive index
 n1 = 1 #air refractive indeix 

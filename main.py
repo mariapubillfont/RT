@@ -37,7 +37,7 @@ Etotal = []
 theta = []
 
 theta_i_y = np.zeros(N)
-for i in range(0, N): theta_i_y[i] = 0
+for i in range(0, N): theta_i_y[i] = -20
 
 angle_out = []
 m_max = 10000
@@ -65,7 +65,7 @@ fig.set_dpi(300)
 ax1 = fig.add_subplot(111)
 ax1.set_aspect(1, adjustable='box')
 ax1.fill_between(p, surface1, surface2, color = 'lightgrey')
-plt.ylim([0,h2*3])
+plt.ylim([-100,h2*3])
 plt.ylabel('z (mm)' )
 plt.xlabel('x (mm)')
 plt.rcParams["font.family"] = "Times New Roman" 
@@ -96,81 +96,17 @@ dR= []
 
 Pk, Pk_intersection1, Pk_ap, Pk_final, sk, nk, path_length, Ak_ap, dck, theta_k, angle_out = rt.directRayTracing(surface1, surface2, theta_i_y)
 
-plt.plot([-Pk[:,0], -Pk_intersection1[:,0] ], [Pk[:,1], Pk_intersection1[:,1]], color='black', linewidth = 0.5)
-plt.plot([-Pk_ap[:,0], -Pk_intersection1[:,0] ], [Pk_ap[:,1], Pk_intersection1[:,1]], color='black', linewidth = 0.5)
-plt.plot([-Pk_ap[:,0], -Pk_final[:,0] ], [Pk_ap[:,1], Pk_final[:,1]], color='black', linewidth = 0.5)
+plt.plot([Pk[:,0], Pk_intersection1[:,0] ], [Pk[:,1], Pk_intersection1[:,1]], color='black', linewidth = 0.5)
+plt.plot([Pk_ap[:,0], Pk_intersection1[:,0] ], [Pk_ap[:,1], Pk_intersection1[:,1]], color='black', linewidth = 0.5)
+plt.plot([Pk_ap[:,0], Pk_final[:,0] ], [Pk_ap[:,1], Pk_final[:,1]], color='black', linewidth = 0.5)
 
 plt.show()
 Array = np.linspace (-L/2, L/2, N)
-# #plot the radiation pattern
-# fig = plt.figure(2)
-# fig.set_dpi(300)
-# plt.plot(Array[1:N-1], Ak_ap)
-# plt.ylabel('Amplitude at the lens aperture')
-# plt.xlabel('Array x(mm)')
-# plt.grid()
-
-
-# fig = plt.figure(6)
-# fig.set_dpi(300)
-# plt.plot(Array[1:N-1], dck)
-# plt.ylabel('difference between two rays at the ap')
-# plt.xlabel('Array x(mm)')
-# plt.grid()
-
-# fig = plt.figure(4)
-# fig.set_dpi(300)
-# plt.plot(Array, theta_k*180/np.pi)
-# plt.ylabel('$\u03B8 $ between normal and ray direction (degrees)')
-# plt.xlabel('Array x(mm)')
-# plt.grid() 
-
-# fig = plt.figure(5)
-# fig.set_dpi(300)
-# plt.plot(Array, theta_i_y, Array, angle_out)
-# plt.legend(['$\u03B8$ input', '$\u03B8$ output'])
-# plt.ylabel('$\u03B8 $ (degrees)')
-# plt.xlabel('Array x(mm)')
-# plt.grid()
-
-# fig = plt.figure(7)
-# fig.set_dpi(300)
-# plt.plot(Array, sk[:,0], color = 'red')
-# plt.plot(Array, sk[:,1], color = 'green')
-# plt.legend(['x', 'y'])
-# plt.ylabel('sk')
-# plt.xlabel('Array x(mm)')
-# plt.grid()
-
-
-# fig = plt.figure(8)
-# fig.set_dpi(300)
-# plt.plot(Array, nk[:,0], color = 'red')
-# plt.plot(Array, nk[:,1], color = 'green')
-# plt.legend(['x', 'y'])
-# plt.ylabel('nk')
-# plt.xlabel('Array x(mm)')
-# plt.grid()
-
-
-# fig = plt.figure(9)
-# fig.set_dpi(300)
-# plt.plot(Array, path_length)
-# plt.ylabel('Path length (mm)')
-# plt.xlabel('Array x(mm)')
-# plt.grid()
-
 
 
 Etotal, theta, dR = rp.getRadiationPattern(Ak_ap, path_length[1:N-1], nk[1:N-1], sk[1:N-1], dck, Pk_ap[1:N-1])
+Etotal_dB = 20*np.log10(abs(Etotal)/max(abs(Etotal)))
 
-
-# fig = plt.figure(10)
-# fig.set_dpi(300)
-# plt.plot(theta*180/np.pi-90, dR/max(dR))
-# plt.ylabel('dR')
-# plt.xlabel('theta (rads)')
-# plt.grid()
 
 #plot the radiation pattern
 fig2 = plt.figure(3)
@@ -178,12 +114,12 @@ fig2.set_dpi(400)
 ax2 = fig2.add_subplot(111)
 ax2.set_aspect(1.5, adjustable='box')
 
-plt.plot(theta*180/np.pi -90, 20*np.log10(abs(Etotal)/max(abs(Etotal))), linewidth=1, color = 'red')
+plt.plot(theta*180/np.pi-90, Etotal_dB, linewidth=1, color = 'red')
 plt.ylabel('Normalized Pattern, dB')
 plt.xlim([-70, 70])
 plt.ylim([-35, 0])
 plt.xlabel('$\u03B8 $, degrees')
-plt.xticks(range(-70, 71, 10))
+plt.xticks(range(-90, 91, 10))
 plt.yticks(range(-35, 10, 5))
 plt.rcParams["font.family"] = "Times New Roman" 
 ax1.xaxis.label.set_fontsize(10)
