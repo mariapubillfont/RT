@@ -65,7 +65,7 @@ fig.set_dpi(300)
 ax1 = fig.add_subplot(111)
 ax1.set_aspect(1, adjustable='box')
 ax1.fill_between(p, surface1, surface2, color = 'lightgrey')
-plt.ylim([-100,h2*3])
+plt.ylim([-500,h2*3])
 plt.ylabel('z (mm)' )
 plt.xlabel('x (mm)')
 plt.rcParams["font.family"] = "Times New Roman" 
