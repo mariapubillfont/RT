@@ -24,7 +24,7 @@ def norma(u):
 def getRadiationPattern(Ak_ap, path_length, nk, sk, dCk, Pk_ap):
     
     q = 0.1
-    theta = np.linspace(0, np.pi, 700)
+    theta = np.linspace(0, np.pi, 400)
     R_obs =1.E9
     E = np.zeros(len(theta),complex)
     # print(Pk_ap)

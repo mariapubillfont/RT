@@ -37,7 +37,7 @@ Etotal = []
 theta = []
 
 theta_i_y = np.zeros(N)
-for i in range(0, N): theta_i_y[i] = -20
+for i in range(0, N): theta_i_y[i] = -60
 
 angle_out = []
 m_max = 10000

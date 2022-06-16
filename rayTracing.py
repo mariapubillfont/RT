@@ -200,7 +200,7 @@ def directRayTracing(surface1, surface2, theta_i_y):
         #create the line equation of the ray 1 (from the Array to surface 1)
         x1=Array[i]
         # y1=-250
-        y1 = -333/2
+        y1 = 0
         Pk[i] = [x1, y1] #save it inside an array
 
         
@@ -286,7 +286,6 @@ def directRayTracing(surface1, surface2, theta_i_y):
         
         
         deltai = (L - i*(L/N))*np.cos(theta_i_x)
-        print(deltai)
         # calculate the distances of each ray -> calculate the phase distribution
         d1 = distance([x1, y1],[xi, yi]) - deltai
         d2 = distance([xi, yi],[xi_2, yi_2])     
@@ -295,10 +294,8 @@ def directRayTracing(surface1, surface2, theta_i_y):
         
         deltay = y1+deltai
         deltax = (deltay-y1)/m+x1
-        plt.plot(deltax, deltay, 'x', color = 'green')
+        #plt.plot(deltax, deltay, 'x', color = 'green')
         # plt.plot(p,np.zeros(len(p)))
-        # print(distance((deltax,deltay), findIntersection(np.zeros(len(p)), ray1, m)))
-        print(deltay)
         if 0:  # calculate the phase distribuiton
             phi_i = getPhaseDisrt_i(d1, d2, d3) #phase contribution due to the ray propagation
             # calculate the phase distribution along the central row of the illuminating array
