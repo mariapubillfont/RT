@@ -9,8 +9,11 @@ import radPat as rp
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+from scipy.interpolate import interp1d
+
 
 import input as I
+import pandas as pd
 
 
 
@@ -32,12 +35,48 @@ n2 = I.n2 #dielectric refractive index
 n1 = I.n1 #air refractive indeix 
 wv = I.wv # wavelength in mm (defined in the paper)
 k0 = I.k0
+Array = I.Array
+
 phi_a = np.zeros(N)
 Etotal = []
 theta = []
 
+
 theta_i_y = np.zeros(N)
-for i in range(0, N): theta_i_y[i] = -60
+#x = np.linspace(-L/2, L/2, 12)
+
+
+output_angle = 0
+
+df = pd.read_excel('Reverse_anglesIn_' + str(output_angle) + '.xlsx', sheet_name='Sheet1')
+df_np = np.array(df)
+thy = df_np[:,0]
+
+
+
+# thy = [15.5, 12.3, 9.25, 6.5, 3.9, 1.155, -1.2, -3.9, -6.5, -9.25, -12.3, -15.5]
+# const = 191.7     
+  
+#plot the function of the phases
+
+
+x = np.linspace(-L/2, L/2, len(thy))   
+f = interp1d(x, thy, kind = 'cubic')
+xnew = (np.linspace(-L/2, L/2, num=1001, endpoint=True))
+theta_i_y = f(Array)    
+fig = plt.figure()
+fig.set_dpi(300)
+plt.plot(x, thy, '.')
+plt.plot(xnew, f(xnew))
+plt.show() 
+#theta_i_y = thy
+#for i in range(0, N): theta_i_y[i] = -20
+
+
+
+
+
+
 
 angle_out = []
 m_max = 10000
@@ -65,7 +104,7 @@ fig.set_dpi(300)
 ax1 = fig.add_subplot(111)
 ax1.set_aspect(1, adjustable='box')
 ax1.fill_between(p, surface1, surface2, color = 'lightgrey')
-plt.ylim([-500,h2*3])
+plt.ylim([0,750])
 plt.ylabel('z (mm)' )
 plt.xlabel('x (mm)')
 plt.rcParams["font.family"] = "Times New Roman" 
@@ -77,7 +116,7 @@ plt.plot(p, surface1, color='grey')
 plt.plot(p, surface2, color='grey')
 
 
-plt.grid()
+#plt.grid()
 
 #variables needed for the radiation pattern
 nk = np.zeros([N,2]) #normal of the aperture

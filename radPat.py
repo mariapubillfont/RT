@@ -7,6 +7,25 @@ Created on Mon May  9 11:29:39 2022
 import numpy as np
 import matplotlib.pyplot as plt
 import input as I
+import pandas as pd
+from scipy.interpolate import interp1d
+
+L = I.L
+Array = I.Array
+N = I.N
+
+df = pd.read_excel('phaseDistribution_' + str(0) + '.xlsx', sheet_name='Sheet1')
+df_np = np.array(df)
+phase = df_np[:,1]
+x_phase = df_np[:,0]
+f = interp1d(x_phase, phase, kind = 'cubic')
+xnew = (np.linspace(-L/2, L/2, num=N+1, endpoint=True))
+#phase_distribution = f(Array)    
+fig = plt.figure()
+fig.set_dpi(300)
+plt.plot(x_phase, phase, '.')
+plt.plot(xnew, f(xnew))
+plt.show() 
 
 
 #=============================================================================

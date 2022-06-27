@@ -12,7 +12,7 @@ import input as I
 
 
 const=0
-long = 300 #how long is the final point of the rays
+long = 350 #how long is the final point of the rays
 
     
 # parameters to define the conic shapes of the dome (all parameters defined in the paper)
@@ -31,6 +31,7 @@ wv = I.wv # wavelength in mm (defined in the paper)
 k0 = I.k0 #propagation constant in free space
 N = I.N
 L = I.L
+Array = I.Array
 # angle_out = []
 m_max = 1000000000
 
@@ -164,18 +165,9 @@ def getAmplitude(Pk, Pk1, Pk_ap, Pk_ap1, theta): #get the amplitude of the E fie
 # =============================================================================
 
 
-#=============================================================================
-# def getRadPattern(): #calculate the radiattion pattern for
-#     dLk = distance(Pk, Pk1)/2
-#     dck_ap = distance(Pk_ap, Pk_ap1)/2
-#     return np.sqrt(dLk/(dck_ap*np.cos(theta)))
-# =============================================================================
-
-
-
 def directRayTracing(surface1, surface2, theta_i_y):
-    Array = np.linspace (-L/2, L/2, N)
     theta_i_x_arr = np.deg2rad(90+theta_i_y)
+    #theta_i_x_arr = theta_i_y
     nk = np.zeros([N,2]) #normal of the aperture
     sk = np.zeros([N,2]) #pointying vector
     Ak = np.ones(N)
@@ -195,7 +187,7 @@ def directRayTracing(surface1, surface2, theta_i_y):
         ## ray 1 -> from Array to surface1 (first dome surface)
         ## ray 2 -> from surface1 to surface2 (second dome surface)
         ## ray 3 -> from surface 2 to air
-        theta_i_x = theta_i_x_arr[i]
+        theta_i_x =  theta_i_x_arr[i]
             
         #create the line equation of the ray 1 (from the Array to surface 1)
         x1=Array[i]
@@ -313,23 +305,8 @@ def directRayTracing(surface1, surface2, theta_i_y):
         if i>1: #calculating the amplitudes
             
                  
-            Ak_ap[i-2], dck[i-2]  = getAmplitude(Pk[i-2], Pk[i], Pk_ap[i-2], Pk_ap[i], theta_k[i-2])
-            
-
-            
-    # f = interp1d(Array[1:N-1], Ak_ap, kind = 'cubic')        
-    # Ak_new = smoothTriangle(Ak_ap, 2)             
-    # fig = plt.figure(7)
-    # fig.set_dpi(300)
-    # plt.plot(Array[1:N-1], smoothTriangle(Ak_ap, 2), color='red')
-    # plt.ylabel('diferencia a larray')
-    # plt.xlabel('Array x(mm)')
-    # plt.grid()   
-    # plt.show()
-
-
+            Ak_ap[i-2], dck[i-2]  = getAmplitude(Pk[i-2], Pk[i], Pk_ap[i-2], Pk_ap[i], theta_k[i-2])          
   
-    # Ak_ap = Ak_ap*np.cos(theta_i_x)
     return Pk, Pk_intersection1, Pk_ap, Pk_final, sk, nk, path_length, Ak_ap, dck, theta_k , angle_out 
     
 

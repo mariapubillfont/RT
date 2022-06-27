@@ -9,45 +9,13 @@ import matplotlib.pyplot as plt
 #import math
 
 
-# parameters to define the Array
-L = 690 #length of the Array (hmax = L/3) (defined in the paper)
-N =5 #number of elements of the Array
-d_Array = 9 # element periodicity, in mm (defined in the paper)
-d_gp = 8.4 #distance from the ground plane (defined in the paper)
-Array = np.linspace (-L/2, L/2, N)
-d_Array_m = Array[1] - Array[0] #measured interelement distance
-
-#what you have to change
-theta_o_y = 80
-
-theta_o_x = np.deg2rad(90 -  theta_o_y) #incident angle with respect to x axis
-angle_in = []
-m_max = 10000
-spacing=200
-
-
-
-# const is a constant in order to center the phase distribution to the center
-if theta_o_y == 80: #80
-    const = 587
-    y1=400
-    
-elif theta_o_y == 40: #40  
-    const = 344
-    y1= -400
-   
-elif theta_o_y == 0: #broadside
-    const = 191.5
-    y1=0
-
-# parameters to define the conic shapes of the dome (all parameters defined in the paper)
 c1 = -0.0021
 c2 = -0.0005
 k1 = -1.2
 k2 = -3.9
 h1 = 325
 h2 = 345
-D = 2000.
+D = 1500.
 p = np.linspace(-D, D, 10000) 
 er = 2.5
 n2 = np.sqrt(er) #dielectric refractive index
@@ -58,6 +26,40 @@ phi_a = []
 phi_array = []
 xy_min = []
 j=0
+
+# parameters to define the Array
+L = h1*3 #length of the Array (hmax = L/3) (defined in the paper)
+N =12 #number of elements of the Array
+d_Array = 9 # element periodicity, in mm (defined in the paper)
+d_gp = 8.4 #distance from the ground plane (defined in the paper)
+Array = np.linspace (-L/2, L/2, N)
+d_Array_m = Array[1] - Array[0] #measured interelement distance
+
+#what you have to change
+theta_o_y = 0
+
+theta_o_x = np.deg2rad(90 -  theta_o_y) #incident angle with respect to x axis
+angle_in = []
+m_max = 10000
+spacing=20
+
+
+
+# const is a constant in order to center the phase distribution to the center
+if theta_o_y == 80: #80
+    const = 587
+    y1=400
+    
+elif theta_o_y == 40: #40  
+    const = 344
+    y1= -1100
+   
+elif theta_o_y == 0: #broadside
+    const = 191.5
+    y1=0
+
+# parameters to define the conic shapes of the dome (all parameters defined in the paper)
+
 
 #=============================================================================
 def f(hi, ci, ki, p): #defining the surface shapes as conics
@@ -205,14 +207,15 @@ plt.plot(p, surface1, color='grey')
 plt.plot(p, surface2, color='grey')
 ax.set_aspect(1, adjustable='box')
 ax.fill_between(p, surface1, surface2, color = 'lightgrey')
-plt.ylim([0,h2*3])
+plt.yticks([0, 250, 500, 750])
+plt.ylim([0,750])
 plt.ylabel('z (mm)' )
 plt.xlabel('x (mm)')
 plt.rcParams["font.family"] = "Times New Roman"
 # plt.plot(p_points, surface_points, '.')
 
 
-plt.plot(Array, np.zeros(N), '.', color='black')
+#plt.plot(Array, np.zeros(N), '.', color='black')
 
 xi_3_array = (-281.578, -135.764, -1.05011, 134.563, 280.378)
 yi_3_array = (690, 690, 690, 690, 690)
@@ -229,15 +232,8 @@ for i in range(0, len(p_points)):
         
     #construct the line equation of ray3
     x1 = p_points[i]
-
-    # y1 = surface_points[i]
-    aux = m_max*(p-x1)+y1
-    # plt.plot(p_points[i], surface_points[i], 'x')
-    # plt.plot(p, aux)
-    # plt.plot(x1, y1, 'x')
     m3 = np.tan(theta_o_x)
     ray3 = m3*(p-x1)+y1
-    # plt.plot(p, ray3, color='blue', linewidth = 0.5)
    
     # find the aperture plane (perpendicular to the radiation direction)
     m_t = -1./m3
@@ -249,17 +245,12 @@ for i in range(0, len(p_points)):
     
   
     ray3_perp =  m_t*(p - x_r_max) + y_r_max
-    # plt.plot(x_r_max, y_r_max, 'x')
-    # plt.plot(p,ray3_perp, color='green')
     [xi_2,yi_2] = findIntersection(ray3, surface2, m3) #intersection between ray3 and surface2
     if ( [xi_2,yi_2] == [0,0]): 
         print('**** There is not intersection between ray 3 and surface 2 ****')      
         continue
-    
-    # print(i)
-    # plt.plot(xi_2, yi_2, 'x')
+
     [xi_3,yi_3] = findIntersection(ray3, ray3_perp, m3) #intersection between ray3 and aperture plane
-    plt.plot([xi_3,xi_2],[yi_3,yi_2], color='black', linewidth = 0.5) #plot the final part, from the surface 2 to the air
     
     
     if 0:
@@ -268,7 +259,7 @@ for i in range(0, len(p_points)):
         m3 = np.tan(theta_o_x)
         ray3 = m3*(p-xi_3)+yi_3
         [xi_2,yi_2] = findIntersection(ray3, surface2, m3)
-        plt.plot([xi_3,xi_2],[yi_3,yi_2])
+        # plt.plot([xi_3,xi_2],[yi_3,yi_2])
     
     
     # #calculate the incident angle inside the dielectric 
@@ -277,33 +268,28 @@ for i in range(0, len(p_points)):
     theta_inc2 = snell(theta_out2, n2, n1) #get angle_out with respect to the normal
 
     theta_inc_x2 = getTheta_btw(0,m_n2) + theta_inc2  #get angle out with respect to the x axis
+
     # if getTheta_btw(0,m_n2) < 0: #special case for negative normals
     #    theta_inc_x2 = np.pi - theta_inc_x2    
     #   print('normal and x if normal is negative ', theta_inc_x2*180/np.pi)
         
     #line equation that defines the ray 2 (from surface 1 to surface 2, inside the dielectric)
     m2 = np.tan(theta_inc_x2)
-    ray2 = m2*(p-xi_2)+yi_2
-    # plt.plot(p, ray2)
-    
-    
+    ray2 = m2*(p-xi_2)+yi_2    
     [xi,yi] = findIntersection(ray2, surface1, m2) #find the instersection between the ray2 and the surface 2 and plot ray 2
     
 
-    if [xi,yi] != [0,0]:
-        plt.plot([xi,xi_2],[yi,yi_2], color='black', linewidth = 0.5) #plot between the surface 1 and the surface 2 (intersection 2)
-    else:
+    if [xi,yi] == [0,0]: 
         print('**** There is not intersection between ray 2 and surface 1 ****')
         import sys; sys.exit()    
-    
+        
     
     # #calculate the angle_out 
     m_n = findNormal(xi, yi, c1, k1, h1)[0] #find the normal of surface 1 in the intersection point 1
     theta_out = getTheta_btw(m_n,m2)
-
     theta_inc = snell(theta_out, n1, n2) #get angle_out with respect to the normal
-
     theta_inc_x = getTheta_btw(0,m_n) + theta_inc #get angle out with respect to the x axis
+
 
     #create the line equation of the ray 1 (from the Array to surface 1)
     m = m_max if theta_inc_x == np.pi/2 else np.tan(theta_inc_x)   
@@ -314,12 +300,10 @@ for i in range(0, len(p_points)):
         continue
     
     [x0,y0] = findIntersection(ray1, zero_line, m)  #find the instersection between the ray1 and the surface 1 and plot ray 1   
-    if [x0,y0] != [0,0]:
-        plt.plot([x0,xi],[y0,yi], color='black', linewidth = 0.5) #plot between the Array and the surface 1 (intersection 1)
-    else:
+    if [x0,y0] == [0,0]:
         print('**** There is not intersection between the illuminated array and ray1 for N = ', i ,' ****')
         continue
-        #import sys; sys.exit()
+    # else: plt.plot([x0,xi],[y0,yi], color='black', linewidth = 0.5) #plot between the Array and the surface 1 (intersection 1)
         
         
     
@@ -338,11 +322,11 @@ for i in range(0, len(p_points)):
     if abs(x0) <= max(Array):
         j = j+1
 
-        plt.plot([x0,xi],[y0,yi], color='red', linewidth = 0.5)
-        plt.plot([xi,xi_2],[yi,yi_2], color='red', linewidth = 0.5)
-        plt.plot([xi_3,xi_2],[yi_3,yi_2], color='red', linewidth = 0.5)
+        plt.plot([x0,xi],[y0,yi], color='black', linewidth = 0.5)
+        plt.plot([xi,xi_2],[yi,yi_2], color='black', linewidth = 0.5)
+        plt.plot([xi_3,xi_2],[yi_3,yi_2], color='black', linewidth = 0.5)
         
-        angle_in = np.append(angle_in, getTheta_btw(m, m_max)*180/np.pi)
+        angle_in = np.append(angle_in, getTheta_btw(m, m_max))
         phi_a = np.append(phi_a, -phi_i + const  )
         phi_array = np.append(phi_array , x0)
         
@@ -352,8 +336,8 @@ for i in range(0, len(p_points)):
             x_lmin = x0
             y_rmin = yi_3
             y_lmin = y0
-            plt.plot(x_rmin, y_rmin,'x', color='black')
-            plt.plot(x_lmin, y_lmin, 'x', color='blue')
+            # plt.plot(x_rmin, y_rmin,'x', color='black')
+            # plt.plot(x_lmin, y_lmin, 'x', color='blue')
         # if j == N:
         x_rmax = xi_3
         x_lmax = x0
@@ -361,27 +345,26 @@ for i in range(0, len(p_points)):
         y_lmax = y0
 
     
-     #calculation of the effective length, and magnification
-
+# calculation of the effective length, and magnification
+   
+# plt.plot(x_lmax, y_lmax, 'x', color='green')
+# plt.plot(x_rmax, y_rmax, 'x', color='pink')
     
-plt.plot(x_lmax, y_lmax, 'x', color='green')
-plt.plot(x_rmax, y_rmax, 'x', color='pink')
-    
-Leff = distance([x_rmin, y_rmin], [x_rmax, y_rmax]) #effective length at the aperture plane
-Lproj = distance([x_lmin, y_lmin], [x_lmax, y_lmax]) #length of the array
-M = Leff / (Lproj*np.cos(np.deg2rad(theta_o_y))) #magnification  
+# Leff = distance([x_rmin, y_rmin], [x_rmax, y_rmax]) #effective length at the aperture plane
+# Lproj = distance([x_lmin, y_lmin], [x_lmax, y_lmax]) #length of the array
+# M = Leff / (Lproj*np.cos(np.deg2rad(theta_o_y))) #magnification  
 
 
 
 plt.grid()
-#plt.show()
+plt.show()
   
 
 #plot input angles
-fig = plt.figure(2)
-fig.set_dpi(300)
-plt.plot(phi_array, angle_in)
-plt.xticks([-L/2, -L/4, 0, L/4, L/2], ['-L/2', '-L/4', '0', 'L/4', 'L/2'])
+# fig = plt.figure(2)
+# fig.set_dpi(300)
+# plt.plot(phi_array, angle_in)
+# plt.xticks([-L/2, -L/4, 0, L/4, L/2], ['-L/2', '-L/4', '0', 'L/4', 'L/2'])
 
 
 # plot the phase distribution
