@@ -36,12 +36,12 @@ Array = np.linspace (-L/2, L/2, N)
 d_Array_m = Array[1] - Array[0] #measured interelement distance
 
 #what you have to change
-theta_o_y = 0
+theta_o_y = 40
 
 theta_o_x = np.deg2rad(90 -  theta_o_y) #incident angle with respect to x axis
 angle_in = []
 m_max = 10000
-spacing=20
+spacing=1
 
 
 
@@ -315,8 +315,6 @@ for i in range(0, len(p_points)):
     
     # #calculate the phase distribuiton at the aperture plane
     phi_i = getPhaseDisrt_i(d1, d2, d3) #phase contribution due to the ray propagation
-    # phi_a[i] = -phi_i + const
-
 
     # calculate the phase distribution along the central row of the illuminating array
     if abs(x0) <= max(Array):
@@ -326,7 +324,7 @@ for i in range(0, len(p_points)):
         plt.plot([xi,xi_2],[yi,yi_2], color='black', linewidth = 0.5)
         plt.plot([xi_3,xi_2],[yi_3,yi_2], color='black', linewidth = 0.5)
         
-        angle_in = np.append(angle_in, getTheta_btw(m, m_max))
+        angle_in = np.append(angle_in, getTheta_btw(m_max, m)*180/np.pi)
         phi_a = np.append(phi_a, -phi_i + const  )
         phi_array = np.append(phi_array , x0)
         

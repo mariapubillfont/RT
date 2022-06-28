@@ -50,8 +50,8 @@ output_angle = 0
 
 df = pd.read_excel('Reverse_anglesIn_' + str(output_angle) + '.xlsx', sheet_name='Sheet1')
 df_np = np.array(df)
-thy = df_np[:,0]
-
+thy = df_np[:,1]
+thy_array = df_np[:,0]
 
 
 # thy = [15.5, 12.3, 9.25, 6.5, 3.9, 1.155, -1.2, -3.9, -6.5, -9.25, -12.3, -15.5]
@@ -61,7 +61,7 @@ thy = df_np[:,0]
 
 
 x = np.linspace(-L/2, L/2, len(thy))   
-f = interp1d(x, thy, kind = 'cubic')
+f = interp1d(x, thy, kind='cubic')
 xnew = (np.linspace(-L/2, L/2, num=1001, endpoint=True))
 theta_i_y = f(Array)    
 fig = plt.figure()
