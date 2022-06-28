@@ -11,8 +11,7 @@ import input as I
 
 
 
-const=0
-long = 350 #how long is the final point of the rays
+long = 500 #how long is the final point of the rays
 
     
 # parameters to define the conic shapes of the dome (all parameters defined in the paper)
@@ -32,6 +31,13 @@ k0 = I.k0 #propagation constant in free space
 N = I.N
 L = I.L
 Array = I.Array
+output_angle = I.output_angle
+
+if output_angle == 0: const = 285
+elif output_angle == 20: const = 243
+elif output_angle == 40: const = 302
+elif output_angle == 60: const = 279
+
 # angle_out = []
 m_max = 1000000000
 
@@ -240,32 +246,42 @@ def directRayTracing(surface1, surface2, theta_i_y):
         ray3 = m3*(p-xi_2)+yi_2
         # plt.plot(p, ray3, 'blue')
     
-        if 0: #case that we want an aperture plane
+        if i == 0: #case that we want an aperture plane
             # find the aperture plane
             m_t = -1./m3
             if theta_i_y[i] >= 0:    
-                x_r_max =  np.cos(theta_out_x2)*h2*2 + max(Array)
+                x_r_max =  np.cos(theta_out_x2)*h2*3 + max(Array)
             else:
-                x_r_max =  np.cos(theta_out_x2)*h2*2 + min(Array)
-            y_r_max = abs(np.sin(theta_out_x2))*h2*2 +y1
+                x_r_max =  np.cos(theta_out_x2)*h2*3 + min(Array)
+            y_r_max = abs(np.sin(theta_out_x2))*h2*3 +y1
             ray3_perp =  m_t*(p - x_r_max) + y_r_max
-            [xi_3,yi_3] = findIntersection(ray3, ray3_perp, m3)
-    
+        [xi_3,yi_3] = findIntersection(ray3, ray3_perp, m3)
+        # plt.plot(p, ray3_perp)
+        x4 = xi_3
+        y4 = yi_3
+           
         
         #final point of the ray 3. Arbitrarly chosen, the height of this point is defined by "long"
-        x4 = (np.cos(theta_out_x2)*long  +xi_2)
-        y4 = abs(np.sin(theta_out_x2)*long) + yi_2
+        # x4 = (np.cos(theta_out_x2)*long  +xi_2)
+        # y4 = abs(np.sin(theta_out_x2)*long) + yi_2
+        
+      
+        
+        
         Pk_final[i] = [x4, y4]       
+
         
         angle_out = np.append(angle_out, getTheta_btw(m3, m_max)*180/np.pi)
         
         #calculation of the effective length, and magnification
-        if 0:
+        if 1:
             if i == 0: 
                 x_rmin = x4
                 x_lmin = x1
                 y_rmin = y4
                 y_lmin = y1
+                # plt.plot(x_lmin, y_lmin, 'x', color='blue')
+                # plt.plot(x_rmin, y_rmin, 'x', color='orange')
     
             if i == N-1:
                 x_rmax = x4
@@ -275,25 +291,34 @@ def directRayTracing(surface1, surface2, theta_i_y):
                 Leff = distance([x_rmin, y_rmin], [x_rmax, y_rmax]) #effective length at the aperture plane
                 Lproj = distance([x_lmin, y_lmin], [x_lmax, y_lmax]) #length of the array
                 # M = Leff / (Lproj*np.cos(np.deg2rad(output_angle))) #magnification  
+                # plt.plot(x_lmax, y_lmax, 'x', color='green')
+                # plt.plot(x_rmax, y_rmax, 'x', color='pink')
         
+     
         
-        deltai = (L - i*(L/N))*np.cos(theta_i_x)
+     
+        
+        # deltai = (L - i*(L/N))*np.cos(theta_i_x)
+        # print(deltai)
         # calculate the distances of each ray -> calculate the phase distribution
-        d1 = distance([x1, y1],[xi, yi]) - deltai
+        d1 = distance([x1, y1],[xi, yi]) 
         d2 = distance([xi, yi],[xi_2, yi_2])     
         d3 = distance([xi_2, yi_2],[x4, y4])
         
         
-        deltay = y1+deltai
-        deltax = (deltay-y1)/m+x1
-        #plt.plot(deltax, deltay, 'x', color = 'green')
+        # deltax = (deltay-y1)/m+x1
         # plt.plot(p,np.zeros(len(p)))
-        if 0:  # calculate the phase distribuiton
+        if 1:  # calculate the phase distribuiton
             phi_i = getPhaseDisrt_i(d1, d2, d3) #phase contribution due to the ray propagation
             # calculate the phase distribution along the central row of the illuminating array
             phi_a[i] = -phi_i + const #50 is an arbitrary constant to center the phase to 0
         
-        
+        deltai = -phi_a[i]/k0
+        # print(deltai)
+        # plt.plot(x1, deltai, 'x', color = 'green')
+        d1 = d1 - deltai
+
+
         #to calculate the amplitude at the surface 2 ---------------------------------------
         yp = h2*2 #aribitrary point in the space that fullfils the equation of the normal. We need it to calculate the unitary normal vector
         xp = (yp + m_n2*xi_2 - yi_2)/m_n2 #the x coordinates that fullfils the equation of the normal
@@ -303,11 +328,9 @@ def directRayTracing(surface1, surface2, theta_i_y):
         theta_k = np.append(theta_k, getTheta_btw(m_n2, m3)) #angle between normal and pointing
         path_length = np.append(path_length, d1+np.sqrt(er)*d2)
         if i>1: #calculating the amplitudes
-            
-                 
             Ak_ap[i-2], dck[i-2]  = getAmplitude(Pk[i-2], Pk[i], Pk_ap[i-2], Pk_ap[i], theta_k[i-2])          
-  
-    return Pk, Pk_intersection1, Pk_ap, Pk_final, sk, nk, path_length, Ak_ap, dck, theta_k , angle_out 
+ 
+    return Pk, Pk_intersection1, Pk_ap, Pk_final, sk, nk, path_length, Ak_ap, dck, theta_k , angle_out, phi_a 
     
 
 

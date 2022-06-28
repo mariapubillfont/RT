@@ -46,7 +46,7 @@ theta_i_y = np.zeros(N)
 #x = np.linspace(-L/2, L/2, 12)
 
 
-output_angle = 0
+output_angle = I.output_angle
 
 df = pd.read_excel('Reverse_anglesIn_' + str(output_angle) + '.xlsx', sheet_name='Sheet1')
 df_np = np.array(df)
@@ -68,6 +68,8 @@ fig = plt.figure()
 fig.set_dpi(300)
 plt.plot(x, thy, '.')
 plt.plot(xnew, f(xnew))
+plt.title('input angles from reverse RT')
+plt.grid()
 plt.show() 
 #theta_i_y = thy
 #for i in range(0, N): theta_i_y[i] = -20
@@ -104,7 +106,7 @@ fig.set_dpi(300)
 ax1 = fig.add_subplot(111)
 ax1.set_aspect(1, adjustable='box')
 ax1.fill_between(p, surface1, surface2, color = 'lightgrey')
-plt.ylim([0,750])
+plt.ylim([-100,1100])
 plt.ylabel('z (mm)' )
 plt.xlabel('x (mm)')
 plt.rcParams["font.family"] = "Times New Roman" 
@@ -116,7 +118,7 @@ plt.plot(p, surface1, color='grey')
 plt.plot(p, surface2, color='grey')
 
 
-#plt.grid()
+plt.grid()
 
 #variables needed for the radiation pattern
 nk = np.zeros([N,2]) #normal of the aperture
@@ -133,7 +135,7 @@ angle_out = []
 dR= []
 
 
-Pk, Pk_intersection1, Pk_ap, Pk_final, sk, nk, path_length, Ak_ap, dck, theta_k, angle_out = rt.directRayTracing(surface1, surface2, theta_i_y)
+Pk, Pk_intersection1, Pk_ap, Pk_final, sk, nk, path_length, Ak_ap, dck, theta_k, angle_out, phi_a = rt.directRayTracing(surface1, surface2, theta_i_y)
 
 plt.plot([Pk[:,0], Pk_intersection1[:,0] ], [Pk[:,1], Pk_intersection1[:,1]], color='black', linewidth = 0.5)
 plt.plot([Pk_ap[:,0], Pk_intersection1[:,0] ], [Pk_ap[:,1], Pk_intersection1[:,1]], color='black', linewidth = 0.5)
@@ -168,6 +170,20 @@ mpl.rcParams.update({'font.size': 10})
 
 plt.grid()
 plt.show()
+
+
+
+fig3 = plt.figure(4)
+fig3.set_dpi(400)
+plt.plot(Array, phi_a)
+plt.yticks([-80, -40, 0, 40, 80], ['-80', '-40', '0', '40', '80'])
+plt.xticks([-L/2, -L/4, 0, L/4, L/2], ['-L/2', '-L/4', '0', 'L/4', 'L/2'])
+plt.ylim([-90,90])
+plt.ylabel('$\phi_a$ (rad)' )
+plt.xlabel('x (mm)')
+plt.rcParams["font.family"] = "Times New Roman"    
+plt.grid()    
+plt.title('Phase distribution over the array for '+ str(output_angle) + '°')
     
     
     

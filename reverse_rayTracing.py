@@ -36,7 +36,7 @@ Array = np.linspace (-L/2, L/2, N)
 d_Array_m = Array[1] - Array[0] #measured interelement distance
 
 #what you have to change
-theta_o_y = 40
+theta_o_y = 60
 
 theta_o_x = np.deg2rad(90 -  theta_o_y) #incident angle with respect to x axis
 angle_in = []
@@ -57,6 +57,14 @@ elif theta_o_y == 40: #40
 elif theta_o_y == 0: #broadside
     const = 191.5
     y1=0
+    
+elif theta_o_y == 20:
+    const = 316
+    y1 = 0   
+    
+elif theta_o_y == 60:
+    const = 460
+    y1 = -400       
 
 # parameters to define the conic shapes of the dome (all parameters defined in the paper)
 
@@ -234,6 +242,7 @@ for i in range(0, len(p_points)):
     x1 = p_points[i]
     m3 = np.tan(theta_o_x)
     ray3 = m3*(p-x1)+y1
+    
    
     # find the aperture plane (perpendicular to the radiation direction)
     m_t = -1./m3

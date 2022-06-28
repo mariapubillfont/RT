@@ -276,7 +276,6 @@ for i in range(0,len(Array)):
     # #calculate the final angle out  
     m_n2 = findNormal(xi_2, yi_2, c2, k2, h2) #find the normal of surface 2 in the intersection point 2
     rayprova = m_n2*(p-xi_2) + yi_2
-    plt.plot(p, rayprova, color='red', linewidth = 0.5)
     theta_inc2 = getTheta_btw(m_n2, m2)
     theta_out2 = snell(theta_inc2, n2, n1) #get angle_out with respect to the normal
     theta_out_x2 = getTheta_btw(0,m_n2) + theta_out2  #get angle out with respect to the x axis
@@ -305,7 +304,8 @@ for i in range(0,len(Array)):
         x_r_max =  np.cos(theta_out_x2)*h2*2 + min(Array)
     y_r_max = abs(np.sin(theta_out_x2))*h2*2 +y1
     ray3_perp =  m_t*(p - x_r_max) + y_r_max
-    
+    plt.plot(p, ray3_perp, 'green', linewidth = 0.1)
+    print(m3)
     
     [xi_3,yi_3] = findIntersection(ray3, ray3_perp, m3)
     plt.plot([xi_3,xi_2],[yi_3,yi_2], color='black', linewidth = 0.5)
