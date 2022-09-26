@@ -6,16 +6,20 @@ Created on Fri May 13 13:03:37 2022
 """
 import numpy as np
 
+
 const=0
 long = 300 #how long is the final point of the rays
 
     
 # parameters to define the conic shapes of the dome (all parameters defined in the paper)
+
 c1 = -0.0021
 c2 = -0.0005
 k1 = -1.2
+
 k2 = -3.9
 h1 = 325
+
 h2 = 345 #345
 
 
@@ -32,6 +36,7 @@ Array = np.linspace (-L/2, L/2, N)
 
 
 output_angle = 0
+
 
 # angle_out = []
 m_max = 1000000000

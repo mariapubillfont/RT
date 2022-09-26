@@ -2,7 +2,7 @@
 """
 Created on Tue May 10 15:43:04 2022
 
-@author: maria
+@author: maria pubill
 """
 import rayTracing as rt
 import radPat as rp
@@ -68,7 +68,7 @@ fig = plt.figure()
 fig.set_dpi(300)
 plt.plot(x, thy, '.')
 plt.plot(xnew, f(xnew))
-plt.title('input angles from reverse RT')
+plt.title('input angles from reverse RTttt')
 plt.grid()
 plt.show() 
 #theta_i_y = thy

@@ -3,9 +3,8 @@
 maria pubill
 """
 import numpy as np 
-import numba
 import matplotlib.pyplot as plt
-from scipy.interpolate import interp1d
+#rom scipy.interpolate import interp1d
 import input as I
 # import radPat
 
