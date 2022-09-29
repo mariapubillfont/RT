@@ -32,10 +32,11 @@ n1 = 1 #air refractive indeix
 wv = 23. # wavelength in mm (defined in the paper)
 k0 = 2*np.pi/wv #propagation constant in free space
 L = 3*h1 #length of the Array (hmax = L/3) (defined in the paper)
+Leff_broadside = 853.22
 Array = np.linspace (-L/2, L/2, N)
 
 
-output_angle = 0
+output_angle = 40
 
 
 # angle_out = []

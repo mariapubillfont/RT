@@ -15,19 +15,19 @@ Array = I.Array
 N = I.N
 k0 = I.k0
 
-df = pd.read_excel('phaseDistribution_' + str(0) + '.xlsx', sheet_name='Sheet1')
-df_np = np.array(df)
-phase = df_np[:,1]
-x_phase = df_np[:,0]
-f = interp1d(x_phase, phase)
+# df = pd.read_excel('phaseDistribution_' + str(0) + '.xlsx', sheet_name='Sheet1')
+# df_np = np.array(df)
+# phase = df_np[:,1]
+# x_phase = df_np[:,0]
+# f = interp1d(x_phase, phase)
 # xnew = (np.linspace(-L/2, L/2, num=N+1, endpoint=True))
 # #phase_distribution = f(Array)    
-fig1 = plt.figure(1)
-plt.plot(x_phase, -phase, '.')
-fig1.set_dpi(300)
-plt.title('phase distribution/k0')
-plt.grid()
-plt.show() 
+# fig1 = plt.figure(1)
+# plt.plot(x_phase, -phase, '.')
+# fig1.set_dpi(300)
+# plt.title('phase distribution/k0')
+# plt.grid()
+# plt.show() 
 
 
 #=============================================================================
@@ -45,7 +45,7 @@ def norma(u):
 def getRadiationPattern(Ak_ap, path_length, nk, sk, dCk, Pk_ap):
     
     q = 0.1
-    theta = np.linspace(0, np.pi, 400)
+    theta = np.linspace(0, np.pi, 900)
     R_obs =1.E9
     E = np.zeros(len(theta),complex)
     # print(Pk_ap)

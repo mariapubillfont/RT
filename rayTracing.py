@@ -2,15 +2,18 @@
 """
 maria pubill
 """
+from turtle import color
 import numpy as np 
 import matplotlib.pyplot as plt
 #rom scipy.interpolate import interp1d
 import input as I
+import pandas as pd
+
 # import radPat
 
 
 
-long = 500 #how long is the final point of the rays
+long = 600 #how long is the final point of the rays
 
     
 # parameters to define the conic shapes of the dome (all parameters defined in the paper)
@@ -32,10 +35,12 @@ L = I.L
 Array = I.Array
 output_angle = I.output_angle
 
+#const is the aribtrary variable used to center the face distribution to 0
 if output_angle == 0: const = 285
 elif output_angle == 20: const = 243
 elif output_angle == 40: const = 302
 elif output_angle == 60: const = 279
+elif output_angle == 80: const = 0
 
 # angle_out = []
 m_max = 1000000000
@@ -196,21 +201,15 @@ def directRayTracing(surface1, surface2, theta_i_y):
             
         #create the line equation of the ray 1 (from the Array to surface 1)
         x1=Array[i]
-        # y1=-250
         y1 = 0
         Pk[i] = [x1, y1] #save it inside an array
 
-        
-        
         m = m_max if theta_i_x == np.pi/2 else np.tan(theta_i_x)   
         m = np.tan(theta_i_x)
     
         ray1 = m*(p-x1)+y1   
         [xi,yi] = findIntersection(ray1, surface1, m)  #find the instersection between the ray1 and the surface 1 and plot ray 1   
-        # xi = x1 if theta_i_x == np.pi/2 else xi
-        # plt.plot(p,ray1,'red')
         Pk_intersection1[i] = [xi, yi]
-        # print(m*(-345-x1)+y1)
     
         # #calculate the angle_out 
         m_n = findNormal(xi, yi, c1, k1, h1) #find the normal of surface 1 in the intersection point 1
@@ -223,8 +222,6 @@ def directRayTracing(surface1, surface2, theta_i_y):
         ray2 = m2*(p-xi)+yi
         [xi_2,yi_2] = findIntersection(ray2, surface2, m2) #find the instersection between the ray2 and the surface 2 and plot ray 2
         Pk_ap[i]=[xi_2, yi_2] #points of the rays at the lens aperture (surface 2)
-        # plt.plot(xi_2, yi_2, 'x')
-        # plt.plot(p,ray2, 'green')
         # calculate the equation line of normal to the second surface  
         m_n2 = findNormal(xi_2, yi_2, c2, k2, h2) #find the normal of surface 2 in the intersection point 2
     
@@ -243,7 +240,6 @@ def directRayTracing(surface1, surface2, theta_i_y):
         #line equation that defines the ray 3 (from surface 2 to air)
         m3 = np.tan(theta_out_x2)
         ray3 = m3*(p-xi_2)+yi_2
-        # plt.plot(p, ray3, 'blue')
     
         if i == 0: #case that we want an aperture plane
             # find the aperture plane
@@ -252,58 +248,26 @@ def directRayTracing(surface1, surface2, theta_i_y):
                 x_r_max =  np.cos(theta_out_x2)*h2*3 + max(Array)
             else:
                 x_r_max =  np.cos(theta_out_x2)*h2*3 + min(Array)
-            y_r_max = abs(np.sin(theta_out_x2))*h2*3 +y1
+            y_r_max = abs(np.sin(theta_out_x2))*h2*3 + y1
             ray3_perp =  m_t*(p - x_r_max) + y_r_max
         [xi_3,yi_3] = findIntersection(ray3, ray3_perp, m3)
         # plt.plot(p, ray3_perp)
         x4 = xi_3
-        y4 = yi_3
-           
+        y4 = yi_3         
         
         #final point of the ray 3. Arbitrarly chosen, the height of this point is defined by "long"
         # x4 = (np.cos(theta_out_x2)*long  +xi_2)
         # y4 = abs(np.sin(theta_out_x2)*long) + yi_2
-        
-      
-        
-        
-        Pk_final[i] = [x4, y4]       
+        Pk_final[i] = [x4, y4]   
 
-        
         angle_out = np.append(angle_out, getTheta_btw(m3, m_max)*180/np.pi)
+        #print(angle_out)
         
-        #calculation of the effective length, and magnification
-        if 1:
-            if i == 0: 
-                x_rmin = x4
-                x_lmin = x1
-                y_rmin = y4
-                y_lmin = y1
-                # plt.plot(x_lmin, y_lmin, 'x', color='blue')
-                # plt.plot(x_rmin, y_rmin, 'x', color='orange')
-    
-            if i == N-1:
-                x_rmax = x4
-                x_lmax = x1
-                y_rmax = y4
-                y_lmax = y1
-                Leff = distance([x_rmin, y_rmin], [x_rmax, y_rmax]) #effective length at the aperture plane
-                Lproj = distance([x_lmin, y_lmin], [x_lmax, y_lmax]) #length of the array
-                # M = Leff / (Lproj*np.cos(np.deg2rad(output_angle))) #magnification  
-                # plt.plot(x_lmax, y_lmax, 'x', color='green')
-                # plt.plot(x_rmax, y_rmax, 'x', color='pink')
-        
-     
-        
-     
-        
-        # deltai = (L - i*(L/N))*np.cos(theta_i_x)
-        # print(deltai)
+
         # calculate the distances of each ray -> calculate the phase distribution
         d1 = distance([x1, y1],[xi, yi]) 
         d2 = distance([xi, yi],[xi_2, yi_2])     
         d3 = distance([xi_2, yi_2],[x4, y4])
-        
         
         # deltax = (deltay-y1)/m+x1
         # plt.plot(p,np.zeros(len(p)))
@@ -313,10 +277,7 @@ def directRayTracing(surface1, surface2, theta_i_y):
             phi_a[i] = -phi_i + const #50 is an arbitrary constant to center the phase to 0
         
         deltai = -phi_a[i]/k0
-        # print(deltai)
-        # plt.plot(x1, deltai, 'x', color = 'green')
         d1 = d1 - deltai
-
 
         #to calculate the amplitude at the surface 2 ---------------------------------------
         yp = h2*2 #aribitrary point in the space that fullfils the equation of the normal. We need it to calculate the unitary normal vector
@@ -328,8 +289,19 @@ def directRayTracing(surface1, surface2, theta_i_y):
         path_length = np.append(path_length, d1+np.sqrt(er)*d2)
         if i>1: #calculating the amplitudes
             Ak_ap[i-2], dck[i-2]  = getAmplitude(Pk[i-2], Pk[i], Pk_ap[i-2], Pk_ap[i], theta_k[i-2])          
- 
-    return Pk, Pk_intersection1, Pk_ap, Pk_final, sk, nk, path_length, Ak_ap, dck, theta_k , angle_out, phi_a 
+    
+
+    #calculation of the effective length, and magnification
+    # Effective length of the rays at the aperture -> two extreme points
+    Leff_max = Pk_final[np.argmax(Pk_final[:,1])]
+    Leff_min = Pk_final[np.argmin(Pk_final[:,1])]
+    # Two end points of the array
+    L_max = [Array[np.argmax(Array)], y1]
+    L_min = [Array[np.argmin(Array)], y1]
+    
+    Leff = distance(Leff_max.tolist(), Leff_min.tolist()) #effective length at the aperture plane
+    Lproj = distance(L_max, L_min)
+    return Pk, Pk_intersection1, Pk_ap, Pk_final, sk, nk, path_length, Ak_ap, dck, theta_k , angle_out, phi_a, Leff 
     
 
 
