@@ -34,9 +34,9 @@ k0 = 2*np.pi/wv #propagation constant in free space
 L = 3*h1 #length of the Array (hmax = L/3) (defined in the paper)
 Leff_broadside = 853.22
 Array = np.linspace (-L/2, L/2, N)
-
-
-output_angle = 40
+#Array = (-223.2723272,99.759976,345.2845285)
+#Array = (-L/2, L/2)
+output_angle = 20
 
 
 # angle_out = []

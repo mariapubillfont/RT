@@ -105,4 +105,4 @@ def getRadiationPattern(Ak_ap, path_length, nk, sk, dCk, Pk_ap):
             # Ez[:] +=  Ak_ap[ii] * Fcos[:] * np.exp(-2j*np.pi*(path_length[ii]+dR[:])/I.wv) / (dR[:])    
         # return Ez                                                                                                                 ]
     
-    return Ez, theta, dR
+    return Ez, theta

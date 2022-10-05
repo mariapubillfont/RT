@@ -45,6 +45,7 @@ theta = []
 
 
 theta_i_y = np.zeros(N)
+
 #x = np.linspace(-L/2, L/2, 12)
 
 
@@ -58,14 +59,14 @@ thy_array = df_np[:,0]
   
 #plot the function of the phases
 x = np.linspace(-L/2, L/2, len(thy))   
-f = interp1d(x, thy, kind='cubic')
+f = interp1d(thy_array, thy, kind='cubic')
 xnew = (np.linspace(-L/2, L/2, num=1001, endpoint=True))
 theta_i_y = f(Array)    
 fig = plt.figure()
 fig.set_dpi(300)
-plt.plot(x, thy, '.')
-plt.plot(xnew, f(xnew))
-plt.title('input angles from reverse RTttt')
+plt.plot(thy_array, thy, '.')
+plt.plot(Array, f(Array))
+plt.title('input angles from reverse RT')
 plt.grid()
 plt.show() 
 #theta_i_y = thy
@@ -102,9 +103,11 @@ def f(hi, ci, ki, p): #defining the surface shapes as conics
 
 if 1:
     surface1 = f(h1, c1, k1, p)
+    #surface1 = 250*np.ones(p.size)
     surface1 = np.where(surface1>0, surface1, 0.)
     # np.savetxt('surface1.csv', surface1, delimiter=',')    
     surface2 = f(h2, c2, k2, p)
+    #surface2 = 350*np.ones(p.size)
     surface2 = np.where(surface2>0, surface2, 0.)
     # np.savetxt('surface2.csv', surface2, delimiter=',')       
 if 0:
@@ -140,10 +143,10 @@ path_length = []
 dck = []
 theta_k = []
 angle_out = []
-dR= []
+#dR= []
 
 
-Pk, Pk_intersection1, Pk_ap, Pk_final, sk, nk, path_length, Ak_ap, dck, theta_k, angle_out, phi_a, Leff = rt.directRayTracing(surface1, surface2, theta_i_y)
+Pk, Pk_intersection1, Pk_ap, Pk_final, sk, nk, path_length, Ak_ap, dck, theta_k, angle_out, phi_a, Leff = rt.directRayTracing(surface1, surface2, theta_i_y, thy_array )
 
 plt.plot([Pk[:,0], Pk_intersection1[:,0] ], [Pk[:,1], Pk_intersection1[:,1]], color='black', linewidth = 0.5)
 plt.plot([Pk_ap[:,0], Pk_intersection1[:,0] ], [Pk_ap[:,1], Pk_intersection1[:,1]], color='black', linewidth = 0.5)
@@ -154,12 +157,15 @@ Array = np.linspace (-L/2, L/2, N)
 
 plt.figure(2)
 plt.plot(Array, angle_out)
-plt.xlabel('array mm')
-plt.ylabel('angle out deg')
+plt.xlabel('Array [mm]')
+plt.ylabel('Angle out [deg]')
+plt.grid()
+plt.show()
 
 
-Etotal, theta, dR = rp.getRadiationPattern(Ak_ap, path_length[1:N-1], nk[1:N-1], sk[1:N-1], dck, Pk_ap[1:N-1])
-Etotal_dB = 20*np.log10(abs(Etotal)/max(abs(Etotal))) + 10*np.log10(Leff/Leff_broadside)
+Etotal, theta = rp.getRadiationPattern(Ak_ap, path_length[1:N-1], nk[1:N-1], sk[1:N-1], dck, Pk_ap[1:N-1])
+Etotal_dB = 20*np.log10(abs(Etotal))
+# Etotal_dB = 20*np.log10(abs(Etotal)/max(abs(Etotal))) + 10*np.log10(Leff/Leff_broadside)
 
 
 #plot the radiation pattern
