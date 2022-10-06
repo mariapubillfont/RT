@@ -47,7 +47,7 @@ elif output_angle == 80: const = 0
 
 # angle_out = []
 m_max = 1000000000
-long_r3 = h2*3
+long_r3 = h2*2
 
 
 
@@ -296,13 +296,13 @@ def directRayTracing(surface1, surface2, theta_i_y, thy_array):
             #     x_r_max =  np.cos(theta_out_x2)*h2*3 + min(Array)
 
             x_r_max = np.cos(theta_out_x2)*long_r3 + max(Array)*np.sign(theta_out_x2)
-            y_r_max = abs(np.sin(theta_out_x2))*h2*3 + y1
+            y_r_max = abs(np.sin(theta_out_x2))*long_r3 + y1
             ray3_perp =  m_t*(p - x_r_max) + y_r_max
             def r3_ort(x):
                 return m_t*(x - x_r_max) + y_r_max
 
         #[xi_3,yi_3] = findIntersection(ray3, ray3_perp, m3)
-        result3 = findIntersectionv2(r3, r3_ort, 0.0)
+        result3 = findIntersectionv2(r3, r3_ort, 1.0)
         xi_3 = result3[0]
         yi_3 = r3(result3[0])
         # plt.plot(p, ray3_perp)
