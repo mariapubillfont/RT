@@ -104,12 +104,12 @@ def __comp_der(f,z):
     """
     Computation of the residue of f in z
     """
-    h = 1.E-12*z
+    #h = 1.E-12*z
+    h = 1.E-6
     f1 = f(z-h)
     f2 = f(z+h)
-
-    
-    return (f2-f1)/(2.*h)
+    #return (f2-f1)/(2.*h)
+    return np.gradient(np.array([f1, f(z), f2]), h)[1]
 #=============================================================================
 
 #=============================================================================
@@ -198,7 +198,11 @@ def s2(x):
 
 
 def findIntersectionv2(fun1,fun2,x0):
- return fsolve(lambda x : fun1(x) - fun2(x),x0)
+    # z = np.array([y -m3*(x-x1) - y1, y - h1 + (c1*pow(x,2))/(1+np.sqrt(1-(1+k1)*pow(c1,2)*pow(x,2))) ])
+    def f(xy):    
+        x, y =xy 
+        return np.array([y-fun1(x), y-fun2(x)])
+    return fsolve(f, [-200.0, 200.0], full_output=1)  
 
 
 def directRayTracing(surface1, surface2, theta_i_y, thy_array):
@@ -242,8 +246,8 @@ def directRayTracing(surface1, surface2, theta_i_y, thy_array):
 
 
         result1 = findIntersectionv2(s1, r1, 0.0)
-        xi = result1
-        yi = s1(result1)
+        xi = result1[0][0]
+        yi = s1(result1[0][0])
 
         Pk_intersection1[i] = [xi, yi]
     
@@ -262,8 +266,8 @@ def directRayTracing(surface1, surface2, theta_i_y, thy_array):
         def r2(x):
             return m2*(x-xi)+yi
         result2 = findIntersectionv2(s2, r2, 0.0)
-        xi_2 = result2[0]
-        yi_2 = s2(result2[0])
+        xi_2 = result2[0][0]
+        yi_2 = s2(result2[0][0])
 
         Pk_ap[i]=[xi_2, yi_2] #points of the rays at the lens aperture (surface 2)
         m_n2 = findNormal(xi_2, yi_2, c2, k2, h2) #find the normal of surface 2 in the intersection point 2
@@ -303,8 +307,8 @@ def directRayTracing(surface1, surface2, theta_i_y, thy_array):
 
         #[xi_3,yi_3] = findIntersection(ray3, ray3_perp, m3)
         result3 = findIntersectionv2(r3, r3_ort, 1.0)
-        xi_3 = result3[0]
-        yi_3 = r3(result3[0])
+        xi_3 = result3[0][0]
+        yi_3 = r3(result3[0][0])
         # plt.plot(p, ray3_perp)
           
         

@@ -36,7 +36,7 @@ Leff_broadside = 853.22
 Array = np.linspace (-L/2, L/2, N)
 #Array = (-223.2723272,99.759976,345.2845285)
 #Array = (-L/2, L/2)
-output_angle = 60
+output_angle = 80
 
 
 # angle_out = []
