@@ -37,6 +37,7 @@ N = I.N
 L = I.L
 Array = I.Array
 output_angle = I.output_angle
+Z0 = 376.730313668
 
 #const is the aribtrary variable used to center the face distribution to 0
 if output_angle == 0: const = 285
@@ -101,9 +102,6 @@ def getTheta_btw(m1, m2):
 
 #=============================================================================
 def __comp_der(f,z):
-    """
-    Computation of the residue of f in z
-    """
     #h = 1.E-12*z
     h = 1.E-6
     f1 = f(z-h)
@@ -113,10 +111,8 @@ def __comp_der(f,z):
 #=============================================================================
 
 #=============================================================================
-def findNormal(x,y,ci,ki,hi):
+def findNormal(x,ci,ki,hi):
     def F(t): return f(hi, ci, ki, t)
-
-    #def F(t): return g(hi, ci, ki, t)
     m_t = __comp_der(F, x)
     if abs(m_t) == 0:
         m_n = 1.E5
@@ -188,6 +184,20 @@ def getAmplitude(Pk, Pk1, Pk_ap, Pk_ap1, theta): #get the amplitude of the E fie
     return np.sqrt(dLk/(dck_ap*np.cos(theta))), dck_ap
 # =============================================================================
 
+#=============================================================================
+def getAngleBtwVectors(v1, v2):
+    return np.arctan2( v1[0]*v2[1] - v1[1]*v2[0], v1[0]*v2[0] + v1[1]*v2[1] )
+#=============================================================================
+
+#=============================================================================
+def getRs(theta_i, theta_t, n1, n2):
+    return abs((n1*np.cos(theta_i)- n2*np.cos(theta_t))/(n1*np.cos(theta_i)+ n2*np.cos(theta_t)))**2
+#=============================================================================
+
+#=============================================================================
+def getRp(theta_i, theta_t, n1, n2):
+    return abs((n1*np.cos(theta_t)- n2*np.cos(theta_i))/(n1*np.cos(theta_t)+ n2*np.cos(theta_i5)))**2
+#=============================================================================
 
 
 def s1(x):
@@ -196,6 +206,8 @@ def s1(x):
 def s2(x):
    return h2  + (c2*pow(x,2))/(1+np.sqrt(1-(1+k2)*pow(c2,2)*pow(x,2)))
 
+def s0(x):
+    return 0   
 
 def findIntersectionv2(fun1,fun2,x0):
     # z = np.array([y -m3*(x-x1) - y1, y - h1 + (c1*pow(x,2))/(1+np.sqrt(1-(1+k1)*pow(c1,2)*pow(x,2))) ])
@@ -206,13 +218,14 @@ def findIntersectionv2(fun1,fun2,x0):
 
 
 def directRayTracing(surface1, surface2, theta_i_y, thy_array):
-    theta_i_x_arr = np.deg2rad(90+theta_i_y)
     #theta_i_x_arr = theta_i_y
     nk = np.zeros([N,2]) #normal of the aperture
     sk = np.zeros([N,2]) #pointying vector
     Ak = np.ones(N)
     Ak_ap = np.zeros(N-2)
     Pk = np.zeros([N,2])
+    Pk_refl1 = np.zeros([N,4])
+    Pk_refl2 = np.zeros([N, 4])
     Pk_intersection1 = np.zeros([N,2])
     Pk_ap = np.zeros([N,2])
     Pk_final = np.zeros([N,2])
@@ -221,101 +234,145 @@ def directRayTracing(surface1, surface2, theta_i_y, thy_array):
     dck = np.zeros(N-2)
     phi_a = np.zeros(N)
     angle_out = []
-   # Array = thy_array
 
 
     for i in range(0,len(Array)):
         ## ray 1 -> from Array to surface1 (first dome surface)
         ## ray 2 -> from surface1 to surface2 (second dome surface)
         ## ray 3 -> from surface 2 to air
-        theta_i_x =  theta_i_x_arr[i]
+        theta_i_x = np.deg2rad(90-theta_i_y[i])
             
         #create the line equation of the ray 1 (from the Array to surface 1)
         x1=Array[i]
         y1 = 0
         Pk[i] = [x1, y1] #save it inside an array
         
-        theta_in = np.deg2rad(theta_i_y[i]+90) #input angle with respect to x axis   
-        # theta_in = np.deg2rad(theta_i_y[i]-90)
-        m = np.tan(theta_in) #slope of the first ray (from array to inner surface)
-        ray1 = m*(p-x1)+y1   
-        [xi,yi] = findIntersection(ray1, surface1, m)  #find the instersection between the ray1 and the surface 1 
+        m = np.tan(theta_i_x) #slope of the first ray (from array to inner surface)
 
+
+   
+        v1 = np.array([np.cos(theta_i_x), np.sin(theta_i_x)])
         def r1(x):
-            return m*(x-x1)+y1 
-
+            return (v1[1]/v1[0])*(x-x1)+y1 
+        origin = np.array([x1, y1])
+        #plt.quiver(*origin, *v1, color='b')
+        #plt.plot(p, r1(p), color='blue', linewidth = 0.4)    
 
         result1 = findIntersectionv2(s1, r1, 0.0)
         xi = result1[0][0]
         yi = s1(result1[0][0])
+        #plt.plot(xi, yi, 'bx')
 
         Pk_intersection1[i] = [xi, yi]
     
         # #calculate the angle_out 
-        m_n = findNormal(xi, yi, c1, k1, h1) #find the normal of surface 1 in the intersection point 1
-        theta_inc = getTheta_btw(m_n,m)
+        m_n = findNormal(xi, c1, k1, h1) #find the normal of surface 1 in the intersection point 1
+        v_n = np.array([1,m_n])*np.sign(m_n) #normal vector
+        v_n_norm = v_n/np.sqrt(v_n[0]**2 + v_n[1]**2) #normal unit vector
+        origin = np.array([xi, yi])
+        theta_inc = getAngleBtwVectors(v_n, v1)
         theta_out = snell(theta_inc, n1, n2) #get angle_out with respect to the normal
-        #theta_out_x = theta_out+getTheta_btw(0,m_n)   #get angle out with respect to the x axis
-        theta_out_x = theta_out+np.arctan(m_n)  #get angle out with respect to the x axis
+
+        u = np.cos(theta_out)*v_n_norm[0] - np.sin(theta_out)*v_n_norm[1]
+        v = np.sin(theta_out)*v_n_norm[0] + np.cos(theta_out)*v_n_norm[1]
+        v2 = np.array([u, v])
+        plt.quiver(*origin, *-v_n, color='black')
+
+        ur = -np.cos(theta_inc)*v_n_norm[0] - np.sin(theta_inc)*v_n_norm[1]
+        vr = np.sin(theta_inc)*v_n_norm[0] - np.cos(theta_inc)*v_n_norm[1]   
+        vr1 = np.array([ur, vr])
+        #plt.quiver(*origin, *vr1, color='g')
+        def r_refl1(x):
+            return (vr1[1]/vr1[0])*(x-xi)+yi 
+        plt.plot(p, r_refl1(p), color = 'green', linewidth = 0.5)    
+        intersection_refl1 = findIntersectionv2(s0, r_refl1, 0.0)
+        xi0_r1 = intersection_refl1[0][0]
+        yi0_r1 = s0(intersection_refl1[0][0])
+        #plt.plot(xi0_r1, yi0_r1, 'rx')
+
+        intersection_refl1 = findIntersectionv2(s1, r_refl1, 0.0)
+        xi1_r1 = intersection_refl1[0][0]
+        yi1_r1 = s1(intersection_refl1[0][0])
+        #plt.plot(xi1_r1, yi1_r1, 'rx')
+
+        Pk_refl1[i] = [xi0_r1, yi0_r1,xi1_r1, yi1_r1]
+
+        #print(getAngleBtwVectors(v_n, v1)*180/np.pi, getAngleBtwVectors(-v_n, vr1)*180/np.pi )
+
 
         #line equation that defines the ray 2 (from surface 1 to surface 2, inside the dielectric)
-        m2 = np.tan(theta_out_x)
-        ray2 = m2*(p-xi)+yi
-        [xi_2,yi_2] = findIntersection(ray2, surface2, m2) #find the instersection between the ray2 and the surface 2 and plot ray 2
-        
         def r2(x):
-            return m2*(x-xi)+yi
+            return (v2[1]/v2[0])*(x-xi)+yi
+        #plt.plot(p, r2(p), color='green', linewidth = 0.5)    
+        
+  
         result2 = findIntersectionv2(s2, r2, 0.0)
         xi_2 = result2[0][0]
         yi_2 = s2(result2[0][0])
-
         Pk_ap[i]=[xi_2, yi_2] #points of the rays at the lens aperture (surface 2)
-        m_n2 = findNormal(xi_2, yi_2, c2, k2, h2) #find the normal of surface 2 in the intersection point 2
-    
-        # calculate the angle out
-        theta_inc2 = getTheta_btw(m_n2,m2)
+
+        m_n2 = findNormal(xi_2, c2, k2, h2) #find the normal of surface 2 in the intersection point 2
+        v_n2 = np.array([1,m_n2])*np.sign(m_n2) #normal vector
+        v_n2_norm = v_n2/np.sqrt(v_n2[0]**2 + v_n2[1]**2) #normal unit vector
+        origin = np.array([xi_2, yi_2])
+       # plt.quiver(*origin, *-v_n2, color='black')
+        theta_inc2 = getAngleBtwVectors(v_n2_norm, v2)
         theta_out2 = snell(theta_inc2, n2, n1) #get angle_out with respect to the normal
-        #theta_out_x2 = getTheta_btw(m_n2,0) + theta_out2  #get angle out with respect to the x axis
-        theta_out_x2 = theta_out2 + np.arctan(m_n2) 
-        if getTheta_btw(0, m_n2) < 0: #special case for negative normals
-            theta_out_x2 = np.pi + theta_out_x2 
+
+        ur = -np.cos(theta_inc2)*v_n2_norm[0] - np.sin(theta_inc2)*v_n2_norm[1]
+        vr = np.sin(theta_inc2)*v_n2_norm[0] - np.cos(theta_inc2)*v_n2_norm[1]   
+        vr2 = np.array([ur, vr])
+       # plt.quiver(*origin, *vr2, color='g')
+        def r_refl2(x):
+            return (vr2[1]/vr2[0])*(x-xi_2)+yi_2 
+       # plt.plot(p, r_refl2(p), color = 'green', linewidth = 0.5)    
+        intersection_refl2 = findIntersectionv2(s0, r_refl2, 0.0)
+        xi0_r2 = intersection_refl2[0][0]
+        yi0_r2 = s0(intersection_refl2[0][0])
+        #plt.plot(xi0_r1, yi0_r1, 'rx')
+
+        intersection_refl2 = findIntersectionv2(s2, r_refl2, 0.0)
+        xi2_r2 = intersection_refl2[0][0]
+        yi2_r2 = s2(intersection_refl2[0][0])
+        #plt.plot(xi1_r1, yi1_r1, 'rx')
+
+        Pk_refl2[i] = [xi0_r2, yi0_r2,xi2_r2, yi2_r2]
+            
+        #we rotate the normal vector anticlockwise
+        u = np.cos(theta_out2)*v_n2_norm[0] - np.sin(theta_out2)*v_n2_norm[1]
+        v = np.sin(theta_out2)*v_n2_norm[0] + np.cos(theta_out2)*v_n2_norm[1]
+        v3 = np.array([u, v])
+        #line equation that defines the ray 2 (from surface 1 to surface 2, inside the dielectric)
+        def r3(x):
+            return (v3[1]/v3[0])*(x-xi_2)+yi_2
+        #plt.plot(p, r3(p), color = 'pink', linewidth = 0.5)
+            
+        
         critical = getTheta_i_max(m_n, m_n2, theta_i_y[i]) #calulate the critical angle 
         if critical > theta_i_x and theta_i_y[i] > 0 or critical < theta_i_x and theta_i_y[i] < 0 : 
             print('Critical angle for element ', i+1)
             continue
         
+        theta_out_x2 = getAngleBtwVectors([1,0], v3)
 
-        #line equation that defines the ray 3 (from surface 2 to air)
-        m3 = np.tan(theta_out_x2)
-        ray3 = m3*(p-xi_2)+yi_2
-        def r3(x):
-            return m3*(x-xi_2)+yi_2
-    
         if i == 0: #case that we want an aperture plane
             # find the aperture plane
-            m_t = -1./m3
-            # if theta_i_y[i] >= 0:    
-            #     x_r_max =  np.cos(theta_out_x2)*h2*3 + max(Array)
-            # else:
-            #     x_r_max =  np.cos(theta_out_x2)*h2*3 + min(Array)
-
+            m_t = -1./(v3[1]/v3[0])
             x_r_max = np.cos(theta_out_x2)*long_r3 + max(Array)*np.sign(theta_out_x2)
-            y_r_max = abs(np.sin(theta_out_x2))*long_r3 + y1
-            ray3_perp =  m_t*(p - x_r_max) + y_r_max
+            y_r_max = abs(np.sin(theta_out_x2))*long_r3
             def r3_ort(x):
                 return m_t*(x - x_r_max) + y_r_max
 
-        #[xi_3,yi_3] = findIntersection(ray3, ray3_perp, m3)
         result3 = findIntersectionv2(r3, r3_ort, 1.0)
         xi_3 = result3[0][0]
         yi_3 = r3(result3[0][0])
-        # plt.plot(p, ray3_perp)
+        #plt.plot(p, r3_ort(p))
           
         
         #final point of the ray 3. Arbitrarly chosen, the height of this point is defined by "long"
         Pk_final[i] = [xi_3, yi_3]   
 
-        angle_out = np.append(angle_out, getTheta_btw(m3, m_max)*180/np.pi)
+        angle_out = np.append(angle_out, getAngleBtwVectors(v3, [0,1])*180/np.pi)
         #print(angle_out)
         
 
@@ -340,7 +397,7 @@ def directRayTracing(surface1, surface2, theta_i_y, thy_array):
         
         nk[i] = getUnitVector(xi_2, yi_2, xp, yp) #get the unitary vector of the normal to the surface nk
         sk[i] = getUnitVector(xi_2, yi_2, xi_3, yi_3) # poyinting vector: the direction of the ray
-        theta_k = np.append(theta_k, getTheta_btw(m_n2, m3)) #angle between normal and pointing
+        theta_k = np.append(theta_k, theta_out2) #angle between normal and pointing
         path_length = np.append(path_length, d1+np.sqrt(er)*d2)
         if i>1: #calculating the amplitudes
             Ak_ap[i-2], dck[i-2]  = getAmplitude(Pk[i-2], Pk[i], Pk_ap[i-2], Pk_ap[i], theta_k[i-2])          
@@ -356,7 +413,7 @@ def directRayTracing(surface1, surface2, theta_i_y, thy_array):
     
     Leff = distance(Leff_max.tolist(), Leff_min.tolist()) #effective length at the aperture plane
     Lproj = distance(L_max, L_min)
-    return Pk, Pk_intersection1, Pk_ap, Pk_final, sk, nk, path_length, Ak_ap, dck, theta_k , angle_out, phi_a, Leff 
+    return Pk, Pk_intersection1, Pk_ap, Pk_final, sk, nk, path_length, Ak_ap, dck, theta_k , angle_out, phi_a, Leff, Pk_refl1, Pk_refl2
     
 
 

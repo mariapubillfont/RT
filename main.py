@@ -118,7 +118,7 @@ fig = plt.figure(1)
 fig.set_dpi(300)
 ax1 = fig.add_subplot(111)
 ax1.set_aspect(1, adjustable='box')
-ax1.fill_between(p, surface1, surface2, color = 'lightgrey')
+#ax1.fill_between(p, surface1, surface2, color = 'lightgrey')
 plt.ylim([0,1000])
 plt.xlim([-1000,1000])
 plt.ylabel('z (mm)' )
@@ -137,6 +137,9 @@ nk = np.zeros([N,2]) #normal of the aperture
 sk = np.zeros([N,2]) #pointying vector
 Ak_ap = []
 Pk = np.zeros([N,2])
+Pk_refl1 = np.zeros([N, 4])
+Pk_refl2 = np.zeros([N, 4])
+
 Pk_intersection1 = np.zeros([N,2])
 Pk_ap = np.zeros([N,2])
 Pk_final = np.zeros([N,2])
@@ -147,11 +150,16 @@ angle_out = []
 #dR= []
 
 
-Pk, Pk_intersection1, Pk_ap, Pk_final, sk, nk, path_length, Ak_ap, dck, theta_k, angle_out, phi_a, Leff = rt.directRayTracing(surface1, surface2, theta_i_y, thy_array )
+Pk, Pk_intersection1, Pk_ap, Pk_final, sk, nk, path_length, Ak_ap, dck, theta_k, angle_out, phi_a, Leff, Pk_refl1, Pk_refl2 = rt.directRayTracing(surface1, surface2, theta_i_y, thy_array )
 
 plt.plot([Pk[:,0], Pk_intersection1[:,0] ], [Pk[:,1], Pk_intersection1[:,1]], color='black', linewidth = 0.5)
 plt.plot([Pk_ap[:,0], Pk_intersection1[:,0] ], [Pk_ap[:,1], Pk_intersection1[:,1]], color='black', linewidth = 0.5)
 plt.plot([Pk_ap[:,0], Pk_final[:,0] ], [Pk_ap[:,1], Pk_final[:,1]], color='black', linewidth = 0.5)
+
+plt.plot([Pk_refl1[:,0], Pk_refl1[:,2] ], [Pk_refl1[:,1], Pk_refl1[:,3]], color='pink', linewidth = 0.5)
+plt.plot([Pk_refl2[:,0], Pk_refl2[:,2] ], [Pk_refl2[:,1], Pk_refl2[:,3]], color='skyblue', linewidth = 0.5)
+
+
 plt.show()
 Array = np.linspace (-L/2, L/2, N)
 
