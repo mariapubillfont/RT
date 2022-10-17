@@ -42,7 +42,7 @@ def getUnitVector(x1,y1, x2, y2):
 def norma(u):
     return np.sqrt(u[0]**2 + u[1]**2)
 
-def getRadiationPattern(Ak_ap, path_length, nk, sk, dCk, Pk_ap):
+def getRadiationPattern(Ak_ap, path_length, nk, sk, dCk, xap, yap):
     
     q = 0.1
     theta = np.linspace(0, np.pi, 900)
@@ -79,10 +79,10 @@ def getRadiationPattern(Ak_ap, path_length, nk, sk, dCk, Pk_ap):
         Ez = np.zeros(len(theta)) + 0.j
         Xobs = np.cos(theta)*R_obs
         Yobs = np.sin(theta)*R_obs
-        Xdip = Pk_ap[:,0]
-        Ydip = Pk_ap[:,1]
+        Xdip = xap
+        Ydip = yap
         unvL = nk
-        for ii in range(len(Pk_ap[:,0])):
+        for ii in range(len(xap)):
             dR = np.zeros(len(theta))
             vRx = Xobs[:]-Xdip[ii]
             vRy = Yobs[:]-Ydip[ii]

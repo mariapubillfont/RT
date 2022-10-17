@@ -23,7 +23,7 @@ h1 = 325
 h2 = 345 #345
 
 
-N = 10
+N = 100
 D = 1500.
 p = np.linspace(-D, D, 1000000) 
 er = 2.5
@@ -36,7 +36,8 @@ Leff_broadside = 853.22
 Array = np.linspace (-L/2, L/2, N)
 #Array = (-223.2723272,99.759976,345.2845285)
 #Array = (-L/2, L/2)
-output_angle = 0
+output_angle = 80
+MAX_ITERATIONS = 3
 
 
 # angle_out = []

@@ -112,6 +112,7 @@ def __comp_der(f,z):
 
 #=============================================================================
 def findNormal(x,ci,ki,hi):
+    #def F(t): return f(hi, ci, ki, t)
     def F(t): return f(hi, ci, ki, t)
     m_t = __comp_der(F, x)
     if abs(m_t) == 0:
@@ -255,8 +256,7 @@ def directRayTracing(surface1, surface2, theta_i_y, thy_array):
         def r1(x):
             return (v1[1]/v1[0])*(x-x1)+y1 
         origin = np.array([x1, y1])
-        #plt.quiver(*origin, *v1, color='b')
-        #plt.plot(p, r1(p), color='blue', linewidth = 0.4)    
+        plt.quiver(*origin, *v1, color='b',scale = 50)
 
         result1 = findIntersectionv2(s1, r1, 0.0)
         xi = result1[0][0]
@@ -276,7 +276,7 @@ def directRayTracing(surface1, surface2, theta_i_y, thy_array):
         u = np.cos(theta_out)*v_n_norm[0] - np.sin(theta_out)*v_n_norm[1]
         v = np.sin(theta_out)*v_n_norm[0] + np.cos(theta_out)*v_n_norm[1]
         v2 = np.array([u, v])
-        plt.quiver(*origin, *-v_n, color='black')
+        plt.quiver(*origin, *v2, color='blue', scale = 50)
 
         ur = -np.cos(theta_inc)*v_n_norm[0] - np.sin(theta_inc)*v_n_norm[1]
         vr = np.sin(theta_inc)*v_n_norm[0] - np.cos(theta_inc)*v_n_norm[1]   
@@ -284,7 +284,6 @@ def directRayTracing(surface1, surface2, theta_i_y, thy_array):
         #plt.quiver(*origin, *vr1, color='g')
         def r_refl1(x):
             return (vr1[1]/vr1[0])*(x-xi)+yi 
-        plt.plot(p, r_refl1(p), color = 'green', linewidth = 0.5)    
         intersection_refl1 = findIntersectionv2(s0, r_refl1, 0.0)
         xi0_r1 = intersection_refl1[0][0]
         yi0_r1 = s0(intersection_refl1[0][0])
@@ -367,6 +366,10 @@ def directRayTracing(surface1, surface2, theta_i_y, thy_array):
         xi_3 = result3[0][0]
         yi_3 = r3(result3[0][0])
         #plt.plot(p, r3_ort(p))
+
+
+        origin = np.array([xi_2, yi_2])
+        plt.quiver(*origin, *v3, color='b', scale = 50)
           
         
         #final point of the ray 3. Arbitrarly chosen, the height of this point is defined by "long"
@@ -413,7 +416,7 @@ def directRayTracing(surface1, surface2, theta_i_y, thy_array):
     
     Leff = distance(Leff_max.tolist(), Leff_min.tolist()) #effective length at the aperture plane
     Lproj = distance(L_max, L_min)
-    return Pk, Pk_intersection1, Pk_ap, Pk_final, sk, nk, path_length, Ak_ap, dck, theta_k , angle_out, phi_a, Leff, Pk_refl1, Pk_refl2
+    return Pk, Pk_intersection1, Pk_ap, Pk_final, sk, nk, path_length, Ak_ap, dck, theta_k , angle_out, phi_a, Leff
     
 
 
