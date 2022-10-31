@@ -34,34 +34,19 @@ n1 = I.n1 #air refractive indeix
 wv = I.wv # wavelength in mm (defined in the paper)
 k0 = I.k0
 Array = I.Array
-Leff_broadside=I.Leff_broadside
 MAX_ITERATIONS = I.MAX_ITERATIONS
-phi_a = np.zeros(N)
-Etotal = []
-theta = []
+output_angle = I.output_angle
 theta_i_y = np.zeros(N)
 
-#x = np.linspace(-L/2, L/2, 12)
-output_angle = I.output_angle
-
+# we read all the input angles obtained with the reverse RT and we interpolate them 
 df = pd.read_excel('Reverse_anglesIn_' + str(output_angle) + '.xlsx', sheet_name='Sheet1')
 df_np = np.array(df)
 thy = df_np[:,1]
-thy_array = df_np[:,0]
-    
-row = []
-Pk = [ list(row) for i in range( 0, N)]    
-  
-#plot the function of the phases
-#x = np.linspace(-L/2, L/2, len(thy))   
+thy_array = df_np[:,0] 
 f = interp1d(thy_array, thy, kind='cubic')
-#xnew = (np.linspace(-L/2, L/2, num=1001, endpoint=True))
-# def f(x):
-#     return output_angle +x*0
+theta_i_y = -f(Array)  #the input angles in degrees with respect to y-axis
 
-theta_i_y = -f(Array)    
-
-
+##plot the function of the input angles
 # fig = plt.figure()
 # fig.set_dpi(300)
 # plt.plot(thy_array, thy, '.')
@@ -69,11 +54,6 @@ theta_i_y = -f(Array)
 # plt.title('input angles from reverse RT')
 # plt.grid()
 # plt.show() 
-#theta_i_y = thy
-#for i in range(0, N): theta_i_y[i] = -20
-
-angle_out = []
-m_max = 10000
 
 
 #=============================================================================
@@ -84,15 +64,13 @@ def f(hi, ci, ki, p): #defining the surface shapes as conics
 
 if 1:
     surface1 = f(h1, c1, k1, p)
-    #surface1 = 250*np.ones(p.size)
+    #surface1 = 250*np.ones(p.size) #case of flat surface
     surface1 = np.where(surface1>0, surface1, 0.)
-    # np.savetxt('surface1.csv', surface1, delimiter=',')    
     surface2 = f(h2, c2, k2, p)
-    
-   # surface2 = 350*np.ones(p.size)
+   # surface2 = 350*np.ones(p.size) #case of flat surface
     surface2 = np.where(surface2>0, surface2, 0.)
-    # np.savetxt('surface2.csv', surface2, delimiter=',')       
 if 0:
+    #if we want to import an aritrary shape from a file
     surface1 = np.loadtxt('surface1.csv', delimiter=',')
     surface2 = np.loadtxt('surface2.csv', delimiter=',')
     
@@ -116,58 +94,27 @@ plt.plot(p, surface2, color='grey')
 #variables needed for the radiation pattern
 nk = np.zeros([N,2]) #normal of the aperture
 sk = np.zeros([N,2]) #pointying vector
-Ak_ap = []
-Pk = np.zeros([N,2])
-Pk_refl1 = np.zeros([N, 4])
-Pk_refl2 = np.zeros([N, 4])
-
-Pk_intersection1 = np.zeros([N,2])
-Pk_ap = np.zeros([N,2])
-Pk_final = np.zeros([N,2])
+Ak_ap = [] #amplitude of each ray at the lens aperture
 path_length = []
 dck = []
-theta_k = []
-angle_out = []
-#dR= []
+phi_a = np.zeros(N) #phase distribution oiver the array
+Etotal = []
+theta = []
+row = []
+Pk = [list(row) for i in range( 0, N)]  #all the intersection points, each row represents one ray
 
 
+#plotting all the rays, directRayTracingRec(theta_i_y) from file rayTracingRecursive.py
 Pk, Ak_ap, path_length, nk, sk, dck = rtr.directRayTracingRec(theta_i_y )
 Pk_np = np.array(Pk)
 for i in range(0,MAX_ITERATIONS):
     plt.plot([Pk_np[:, i*2], Pk_np[:, i*2+2]], [Pk_np[:, i*2+1], Pk_np[:, i*2+3]], color='black', linewidth = 0.5)
 
-
-
-# plt.figure(2)
-# plt.plot(Array, angle_out)
-# plt.xlabel('Array [mm]')
-# plt.ylabel('Angle out [deg]')
-# plt.grid()
-# plt.show()
-# df = pd.DataFrame(angle_out)
-# df.to_excel('theta_out.xlsx', sheet_name='Sheet1')
-
-
-Etotal, theta = rp.getRadiationPattern(Ak_ap, path_length[1:N-1], nk[1:N-1], sk[1:N-1], dck, Pk_np[1:N-1, 4],Pk_np[1:N-1, 5] )
-Etotal_dB = 20*np.log10(abs(Etotal))
-# # Etotal_dB = 20*np.log10(abs(Etotal)/max(abs(Etotal))) + 10*np.log10(Leff/Leff_broadside)
-
-# Pk, Pk_intersection1, Pk_ap, Pk_final, sk, nk, path_length, Ak_ap, dck, theta_k, angle_out, phi_a, Leff = rt.directRayTracing(surface1, surface2, theta_i_y, thy_array )
-
-# plt.plot([Pk[:,0], Pk_intersection1[:,0] ], [Pk[:,1], Pk_intersection1[:,1]], color='black', linewidth = 0.5)
-# plt.plot([Pk_ap[:,0], Pk_intersection1[:,0] ], [Pk_ap[:,1], Pk_intersection1[:,1]], color='black', linewidth = 0.5)
-# plt.plot([Pk_ap[:,0], Pk_final[:,0] ], [Pk_ap[:,1], Pk_final[:,1]], color='black', linewidth = 0.5)
-
 plt.grid()
 plt.show()
 
-Array = np.linspace (-L/2, L/2, N)
-
-
-# Etotal, theta = rp.getRadiationPattern(Ak_ap, path_length[1:N-1], nk[1:N-1], sk[1:N-1], dck, Pk_ap[1:N-1])
-# Etotal_dB = 20*np.log10(abs(Etotal))
-# # Etotal_dB = 20*np.log10(abs(Etotal)/max(abs(Etotal))) + 10*np.log10(Leff/Leff_broadside)
-
+Etotal, theta = rp.getRadiationPattern(Ak_ap, path_length[1:N-1], nk[1:N-1], sk[1:N-1], dck, Pk_np[1:N-1, 4],Pk_np[1:N-1, 5] )
+Etotal_dB = 20*np.log10(abs(Etotal))
 
 #plot the radiation pattern
 fig2 = plt.figure(3)
@@ -185,30 +132,14 @@ plt.rcParams["font.family"] = "Times New Roman"
 ax1.xaxis.label.set_fontsize(10)
 ax1.yaxis.label.set_fontsize(10)
 mpl.rcParams.update({'font.size': 10})
-
-df = pd.DataFrame(Etotal_dB, theta)
-df.to_excel('RT_radpat_' + str(output_angle) + 'deg.xlsx', sheet_name='Sheet1')
-
-
 plt.grid()
 plt.show()
 
+#saving the radiation pattern results in an excel
+df = pd.DataFrame(Etotal_dB, theta)
+df.to_excel('RT_radpat_' + str(output_angle) + 'deg.xlsx', sheet_name='Sheet1')
 
-
-# # fig3 = plt.figure(4)
-# # fig3.set_dpi(400)
-# # plt.plot(Array, phi_a)
-# # plt.yticks([-80, -40, 0, 40, 80], ['-80', '-40', '0', '40', '80'])
-# # plt.xticks([-L/2, -L/4, 0, L/4, L/2], ['-L/2', '-L/4', '0', 'L/4', 'L/2'])
-# # plt.ylim([-90,90])
-# # plt.ylabel('$\phi_a$ (rad)' )
-# # plt.xlabel('x (mm)')
-# # plt.rcParams["font.family"] = "Times New Roman"    
-# # plt.grid()    
-# # plt.title('Phase distribution over the array for '+ str(output_angle) + '°')
-    
-    
-    
+   
     
     
     

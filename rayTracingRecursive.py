@@ -2,13 +2,9 @@
 """
 maria pubill
 """
-from gettext import find
-from re import finditer
 from sys import path
-from turtle import color
 import numpy as np 
 import matplotlib.pyplot as plt
-#rom scipy.interpolate import interp1d
 import input as I
 import pandas as pd
 from scipy.optimize import fsolve
@@ -30,6 +26,9 @@ N = I.N
 L = I.L
 Array = I.Array
 output_angle = I.output_angle
+m_max = I.m_max
+MAX_ITERATIONS = I.MAX_ITERATIONS
+
 
 #const is the aribtrary variable used to center the face distribution to 0
 if output_angle == 0: const = 285
@@ -38,9 +37,7 @@ elif output_angle == 40: const = 440
 elif output_angle == 60: const = 415
 elif output_angle == 80: const = 0
 
-m_max = 1000000000
 long_r3 = h2*3
-MAX_ITERATIONS = I.MAX_ITERATIONS
 
 #=============================================================================
 def f(hi, ci, ki, p): #defining the surface shapes as conics
@@ -129,15 +126,8 @@ def getAngleBtwVectors(v1, v2):
     return np.arctan2( v1[0]*v2[1] - v1[1]*v2[0], v1[0]*v2[0] + v1[1]*v2[1] )
 #=============================================================================
 
-#=============================================================================
-def getRs(theta_i, theta_t, n1, n2):
-    return abs((n1*np.cos(theta_i)- n2*np.cos(theta_t))/(n1*np.cos(theta_i)+ n2*np.cos(theta_t)))**2
-#=============================================================================
 
-#=============================================================================
-def getRp(theta_i, theta_t, n1, n2):
-    return abs((n1*np.cos(theta_t)- n2*np.cos(theta_i))/(n1*np.cos(theta_t)+ n2*np.cos(theta_i5)))**2
-#=============================================================================
+
 
 #=============================================================================
 def s1(x):
