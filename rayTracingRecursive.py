@@ -308,7 +308,7 @@ def directRayTracingRec(theta_i_y):
         d1 = d1 - deltai
         theta_k[i] = getAngleBtwVectors(nk[i],sk[i]) #angle between normal and pointing
         #path_length[i] =  d1+(np.sqrt(er)-np.sqrt(er)*np.sqrt(1j*I.tan_delta))*d2
-        path_length[i] =  d1+(np.sqrt(er)*np.sqrt(1-1j*I.tan_delta))*d2
+        path_length[i] =  d1+(np.sqrt(er)*np.sqrt(1+2j*I.tan_delta))*d2
         #path_length[i] = d1+(np.sqrt(er))*d2
 
         if i>1: #calculating the amplitudes
