@@ -23,7 +23,7 @@ h2 = I.h2
 p = I.p
 er = I.er
 e0 = I.e0
-n2 = I.n2 #dielectric refractive index
+n2 = I.n_diec #dielectric refractive index
 n1 = I.n1 #air refractive indeix 
 wv = I.wv # wavelength in mm (defined in the paper)
 k0 = I.k0 #propagation constant in free space
@@ -35,7 +35,7 @@ alpha = I.alpha
 beta = I.beta
 
 #const is the aribtrary variable used to center the face distribution to 0
-if output_angle == 0: const = 298
+if output_angle == 0: const = 292.7
 elif output_angle == 20: const = 0
 elif output_angle == 40: const = 386
 elif output_angle == 60: const = 0
@@ -144,17 +144,30 @@ def getReflectionCoefficients(wv, thickness, polaritzation, permittivity, incide
 #=============================================================================
 
 
+class Surface:
+    def __init__(self, n1, n2, function):
+        self.n1 = n1
+        self.n2 = n2
+        self.f = function
+
+
 #=============================================================================
 def s1(x):
-   
    #return h1 + (c1*pow(x,2))/(1+np.sqrt(1-(1+k1)*pow(c1,2)*pow(x,2)))
     return h1
+
+surface1 = Surface(n1, n2, s1)
+
 def s2(x):
    #return h2  + (c2*pow(x,2))/(1+np.sqrt(1-(1+k2)*pow(c2,2)*pow(x,2)))
     return h2
 
+surface2 = Surface(n2, n1, s2)
+
 def s0(x):
     return 0   
+
+surface0 = Surface(n1, n1, s0)
 #=============================================================================
 
 
@@ -165,6 +178,8 @@ x_r_max = np.cos(theta_out_x2)*long_r3 + max(Array)*np.sign(theta_out_x2)
 y_r_max = abs(np.sin(theta_out_x2))*long_r3-600
 def r3_ort(x):
         return m_t*(x - x_r_max) + y_r_max
+
+aperture_plane = Surface(n1, n1, r3_ort)
 #=============================================================================
 
 def getTransmissionCoefficient(thi):
@@ -206,21 +221,25 @@ def findIntersectionv2(fun1, Pi, vi):
     
   #  sk = np.append(sk, v[j])
     if j == 0:
-        
-        return intersection[j], s1
+        return intersection[j], surface1
     elif j==1:
-        return intersection[j], s2      
+        return intersection[j], surface2      
     elif j ==2: 
-        return intersection[j], r3_ort
+        return intersection[j], aperture_plane
     else: 
         return [0,0], s0                      
 #=============================================================================
 
 
+
+
 def ray(vi, ri, x1, y1, iterations, i, nki, ski, Pki, ray_lengthi):
         iterations = iterations + 1
         #plt.plot(p, ri(p), color = 'red', linewidth = 0.5)
-        [xi, yi], f = findIntersectionv2(ri, [x1, y1],vi)
+        [xi, yi], solution = findIntersectionv2(ri, [x1, y1],vi)
+        f = solution.f
+        n_in = solution.n1
+        n_out = solution.n2
 
         if [xi, yi] == [0,0]: return -1
         #Pk[i][iterations].p =  [xi, yi]
@@ -235,32 +254,33 @@ def ray(vi, ri, x1, y1, iterations, i, nki, ski, Pki, ray_lengthi):
         v_n_norm = v_n/np.sqrt(v_n[0]**2 + v_n[1]**2) #normal unit vector
         origin = np.array([xi, yi])
         theta_i = getAngleBtwVectors(v_n, vi)
-        if f == s1: 
-            theta_t = snell(theta_i, n1, n2)
-            #tsi = tsi*get_ts(theta_i, theta_t, n1, n2)
-            #tpi = tpi*get_tp(theta_i, theta_t, n1, n2)    
-        elif f ==s2: 
-            theta_t = snell(theta_i, n2, n1)
-            #tsi = tsi*get_ts(theta_i, theta_t, n2, n1)
-            #tpi = tpi*get_tp(theta_i, theta_t, n2, n1) 
+        theta_t = snell(theta_i, n_in, n_out)
 
-        else: theta_t = theta_i  
-
-        #tsi = getTransmissionCoefficient(theta_i)
- 
         u = np.cos(theta_t)*v_n_norm[0] - np.sin(theta_t)*v_n_norm[1]
         v = np.sin(theta_t)*v_n_norm[0] + np.cos(theta_t)*v_n_norm[1]
-        v_r = np.array([u, v])
+        v_t = np.array([u, v])
+        plt.quiver(*origin, *v_t, color='r')
 
-        def r_r(x):
-            return (v_r[1]/v_r[0])*(x-xi)+yi
+
+        ur = -np.cos(theta_i)*v_n_norm[0] - np.sin(theta_i)*v_n_norm[1]
+        vr = np.sin(theta_i)*v_n_norm[0] - np.cos(theta_i)*v_n_norm[1]   
+        v_r = np.array([ur, vr])
+        plt.quiver(*origin, *v_r, color='g')
+        def r_refl1(x):
+            return (v_r[1]/v_r[0])*(x-xi)+yi 
+        if iterations < MAX_ITERATIONS:
+            return ray(v_r, r_refl1, xi, yi, iterations, i, nki, ski, Pki, ray_lengthi)
+    
+
+        def r_t(x):
+            return (v_t[1]/v_t[0])*(x-xi)+yi
         #plt.plot(p, r_r(p), color='green', linewidth = 0.5)
         #return nk
         if iterations < MAX_ITERATIONS:
             nki = v_n_norm
-            return ray(v_r, r_r, xi, yi, iterations, i, nki, ski, Pki, ray_lengthi)   
+            return ray(v_t, r_t, xi, yi, iterations, i, nki, ski, Pki, ray_lengthi)   
         else: 
-            ski = v_r
+            ski = v_t
             return nki, ski, Pki, ray_lengthi,                
   
 
@@ -281,6 +301,7 @@ def directRayTracingRec(theta_i_y):
     T_coeff = np.ones(N, dtype=np.complex_)
     R_coeff= np.ones(N, dtype=np.complex_)
     permittivity = I.permittivity
+
    
 
     for i in range(0,len(Array)):
@@ -307,9 +328,9 @@ def directRayTracingRec(theta_i_y):
         deltai = -phi_a[i]/k0
         d1 = d1 - deltai
         theta_k[i] = getAngleBtwVectors(nk[i],sk[i]) #angle between normal and pointing
-        #path_length[i] =  d1+(np.sqrt(er)-np.sqrt(er)*np.sqrt(1j*I.tan_delta))*d2
-        path_length[i] =  d1+(np.sqrt(er)*np.sqrt(1+2j*I.tan_delta))*d2
-        #path_length[i] = d1+(np.sqrt(er))*d2
+        #path_length[i] =  d1+(np.sqrt(er)-1j*np.sqrt(er)*I.tan_delta/2)*d2
+        #path_length[i] =  d1+(np.sqrt(er)*np.sqrt(1-1j*I.tan_delta))*d2
+        path_length[i] = d1+(np.sqrt(er))*d2
 
         if i>1: #calculating the amplitudes
             Pstart1 = [Pk[i-2][0], Pk[i-2][1]]

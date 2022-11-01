@@ -24,7 +24,7 @@ h1 = 325
 #h2 = 345 #345
 h2 = 425
 
-N = 100
+N = 2
 D = 1500.
 p = np.linspace(-D, D, 1000000) 
 er = 25
@@ -40,12 +40,12 @@ L = 3*h1 #length of the Array (hmax = L/3) (defined in the paper)
 Array = np.linspace (-L/2, L/2, N)
 #Array = (-223.2723272,99.759976,345.2845285)
 #Array = (-L/2, L/2)
-output_angle = 0
+output_angle = 40
 MAX_ITERATIONS = 3
 #tan_delta = 0.00066
 tan_delta = 0.00066
 permittivity = n_diec*n_diec*(1-1j*tan_delta)
-n2 = permittivity
+#n2 = permittivity
 
 alpha = np.pi*n_diec*tan_delta/wv
 beta = k0 - 1j*alpha

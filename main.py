@@ -29,7 +29,6 @@ N = I.N
 L = I.L
 p = I.p
 er = I.er
-n2 = I.n2 #dielectric refractive index
 n1 = I.n1 #air refractive indeix 
 wv = I.wv # wavelength in mm (defined in the paper)
 k0 = I.k0
