@@ -178,7 +178,6 @@ x_r_max = np.cos(theta_out_x2)*long_r3 + max(Array)*np.sign(theta_out_x2)
 y_r_max = abs(np.sin(theta_out_x2))*long_r3-600
 def r3_ort(x):
         return m_t*(x - x_r_max) + y_r_max
-
 aperture_plane = Surface(n1, n1, r3_ort)
 #=============================================================================
 
@@ -227,7 +226,7 @@ def findIntersectionv2(fun1, Pi, vi):
     elif j ==2: 
         return intersection[j], aperture_plane
     else: 
-        return [0,0], s0                      
+        return [0,0], surface0                      
 #=============================================================================
 
 
@@ -254,23 +253,25 @@ def ray(vi, ri, x1, y1, iterations, i, nki, ski, Pki, ray_lengthi):
         v_n_norm = v_n/np.sqrt(v_n[0]**2 + v_n[1]**2) #normal unit vector
         origin = np.array([xi, yi])
         theta_i = getAngleBtwVectors(v_n, vi)
-        theta_t = snell(theta_i, n_in, n_out)
+
+        if f == s1:
+            theta_t = snell(theta_i, n1, n2) #get angle_out with respect to the normal
+        elif f==s2: theta_t = snell(theta_i, n2, n1)   
+        else: theta_t = theta_i
+
+        #theta_t = snell(theta_i, n_in, n_out)
 
         u = np.cos(theta_t)*v_n_norm[0] - np.sin(theta_t)*v_n_norm[1]
         v = np.sin(theta_t)*v_n_norm[0] + np.cos(theta_t)*v_n_norm[1]
         v_t = np.array([u, v])
-        plt.quiver(*origin, *v_t, color='r')
+        #plt.quiver(*origin, *v_t, color='r')
 
-
-        ur = -np.cos(theta_i)*v_n_norm[0] - np.sin(theta_i)*v_n_norm[1]
-        vr = np.sin(theta_i)*v_n_norm[0] - np.cos(theta_i)*v_n_norm[1]   
-        v_r = np.array([ur, vr])
-        plt.quiver(*origin, *v_r, color='g')
-        def r_refl1(x):
-            return (v_r[1]/v_r[0])*(x-xi)+yi 
-        if iterations < MAX_ITERATIONS:
-            return ray(v_r, r_refl1, xi, yi, iterations, i, nki, ski, Pki, ray_lengthi)
-    
+        # ur = -np.cos(theta_i)*v_n_norm[0] - np.sin(theta_i)*v_n_norm[1]
+        # vr = np.sin(theta_i)*v_n_norm[0] - np.cos(theta_i)*v_n_norm[1]   
+        # v_r = np.array([ur, vr])
+        # plt.quiver(*origin, *v_r, color='g')
+        # def r_refl1(x):
+        #     return (v_r[1]/v_r[0])*(x-xi)+yi 
 
         def r_t(x):
             return (v_t[1]/v_t[0])*(x-xi)+yi
@@ -295,9 +296,7 @@ def directRayTracingRec(theta_i_y):
     dck = np.zeros(N-2)
     phi_a = np.zeros(N)
     ray_length = [ list(row) for i in range( 0, N)]
-    path_length = np.zeros(N, dtype=complex)
-    # ts_coeff = [list(row) for i in range( 0, N)]
-    # tp_coeff = [list(row) for i in range( 0, N)]
+    path_length = np.zeros(N)
     T_coeff = np.ones(N, dtype=np.complex_)
     R_coeff= np.ones(N, dtype=np.complex_)
     permittivity = I.permittivity

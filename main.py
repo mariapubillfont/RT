@@ -1,7 +1,6 @@
-# -*- coding: utf-8 -*-
+## -*- coding: utf-8 -*-
 """
 Created on Tue May 10 15:43:04 2022
-
 @author: maria pubill
 """
 from cmath import cos, log
@@ -29,38 +28,26 @@ N = I.N
 L = I.L
 p = I.p
 er = I.er
+n2 = I.n2 #dielectric refractive index
 n1 = I.n1 #air refractive indeix 
 wv = I.wv # wavelength in mm (defined in the paper)
 k0 = I.k0
 Array = I.Array
 MAX_ITERATIONS = I.MAX_ITERATIONS
-phi_a = np.zeros(N)
-Etotal = []
-theta = []
 output_angle = I.output_angle
+
 
 theta_i_y = np.ones(N)*output_angle
 
-#x = np.linspace(-L/2, L/2, 12)
-
+# # we read all the input angles obtained with the reverse RT and we interpolate them 
 # df = pd.read_excel('Reverse_anglesIn_' + str(output_angle) + '.xlsx', sheet_name='Sheet1')
 # df_np = np.array(df)
 # thy = df_np[:,1]
-# thy_array = df_np[:,0]
-    
-# # row = []
-# # Pk = [ list(row) for i in range( 0, N)]    
-  
-# #plot the function of the phases
-# #x = np.linspace(-L/2, L/2, len(thy))   
+# thy_array = df_np[:,0] 
 # f = interp1d(thy_array, thy, kind='cubic')
-# #xnew = (np.linspace(-L/2, L/2, num=1001, endpoint=True))
-# # def f(x):
-# #     return output_angle +x*0
+# theta_i_y = -f(Array)  #the input angles in degrees with respect to y-axis
 
-# theta_i_y = f(Array)    
-
-
+##plot the function of the input angles
 # fig = plt.figure()
 # fig.set_dpi(300)
 # plt.plot(thy_array, thy, '.')
@@ -68,11 +55,7 @@ theta_i_y = np.ones(N)*output_angle
 # plt.title('input angles from reverse RT')
 # plt.grid()
 # plt.show() 
-#theta_i_y = thy
-#for i in range(0, N): theta_i_y[i] = -20
 
-angle_out = []
-m_max = 10000
 
 
 #=============================================================================
@@ -118,13 +101,9 @@ sk = np.zeros([N,2]) #pointying vector
 Ak_ap = []
 Pk = np.zeros([N,2])
 
-Pk_intersection1 = np.zeros([N,2])
-Pk_ap = np.zeros([N,2])
-Pk_final = np.zeros([N,2])
 path_length = []
 dck = []
 theta_k = []
-angle_out = []
 ts_coeff = np.ones(N, dtype=np.complex_)
 tp_coeff = np.ones(N)
 #dR= []
@@ -152,21 +131,6 @@ plt.show()
 
 Etotal, theta = rp.getRadiationPattern(Ak_ap, path_length[1:N-1], nk[1:N-1], sk[1:N-1], dck, Pk_np[1:N-1, 4], Pk_np[1:N-1, 5], ts_coeff[1:N-1])
 Etotal_dB = 20*np.log10(abs(Etotal))
-# # Etotal_dB = 20*np.log10(abs(Etotal)/max(abs(Etotal))) + 10*np.log10(Leff/Leff_broadside)
-
-# Pk, Pk_intersection1, Pk_ap, Pk_final, sk, nk, path_length, Ak_ap, dck, theta_k, angle_out, phi_a, Leff = rt.directRayTracing(surface1, surface2, theta_i_y, thy_array )
-
-# plt.plot([Pk[:,0], Pk_intersection1[:,0] ], [Pk[:,1], Pk_intersection1[:,1]], color='black', linewidth = 0.5)
-# plt.plot([Pk_ap[:,0], Pk_intersection1[:,0] ], [Pk_ap[:,1], Pk_intersection1[:,1]], color='black', linewidth = 0.5)
-# plt.plot([Pk_ap[:,0], Pk_final[:,0] ], [Pk_ap[:,1], Pk_final[:,1]], color='black', linewidth = 0.5)
-
-
-Array = np.linspace (-L/2, L/2, N)
-
-
-# Etotal, theta = rp.getRadiationPattern(Ak_ap, path_length[1:N-1], nk[1:N-1], sk[1:N-1], dck, Pk_ap[1:N-1])
-# Etotal_dB = 20*np.log10(abs(Etotal))
-# Etotal_dB = 20*np.log10(abs(Etotal)/max(abs(Etotal))) + 10*np.log10(Leff/Leff_broadside)
 
 
 #plot the radiation pattern
@@ -195,17 +159,7 @@ plt.show()
 
 
 
-# # fig3 = plt.figure(4)
-# # fig3.set_dpi(400)
-# # plt.plot(Array, phi_a)
-# # plt.yticks([-80, -40, 0, 40, 80], ['-80', '-40', '0', '40', '80'])
-# # plt.xticks([-L/2, -L/4, 0, L/4, L/2], ['-L/2', '-L/4', '0', 'L/4', 'L/2'])
-# # plt.ylim([-90,90])
-# # plt.ylabel('$\phi_a$ (rad)' )
-# # plt.xlabel('x (mm)')
-# # plt.rcParams["font.family"] = "Times New Roman"    
-# # plt.grid()    
-# # plt.title('Phase distribution over the array for '+ str(output_angle) + '°')
+
     
     
     
