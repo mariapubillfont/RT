@@ -35,13 +35,9 @@ k0 = I.k0
 Array = I.Array
 MAX_ITERATIONS = I.MAX_ITERATIONS
 output_angle = I.output_angle
-<<<<<<< HEAD
-theta_i_y = np.zeros(N)
-=======
 
 
 theta_i_y = np.ones(N)*output_angle
->>>>>>> reflections_flat
 
 # we read all the input angles obtained with the reverse RT and we interpolate them 
 df = pd.read_excel('Reverse_anglesIn_' + str(output_angle) + '.xlsx', sheet_name='Sheet1')
@@ -59,10 +55,6 @@ theta_i_y = -f(Array)  #the input angles in degrees with respect to y-axis
 # plt.title('input angles from reverse RT')
 # plt.grid()
 # plt.show() 
-<<<<<<< HEAD
-=======
-
->>>>>>> reflections_flat
 
 
 #=============================================================================
@@ -76,21 +68,13 @@ def g(hi,x):
 
 if 1:
     surface1 = f(h1, c1, k1, p)
-<<<<<<< HEAD
-    #surface1 = 250*np.ones(p.size) #case of flat surface
-=======
     #surface1 = h1*np.ones(p.size)
     #surface1 = g(h1,p)
->>>>>>> reflections_flat
     surface1 = np.where(surface1>0, surface1, 0.)
     surface2 = f(h2, c2, k2, p)
-<<<<<<< HEAD
-   # surface2 = 350*np.ones(p.size) #case of flat surface
-=======
     
     #surface2 = h2*np.ones(p.size)
     #surface2 = g(h2,p)
->>>>>>> reflections_flat
     surface2 = np.where(surface2>0, surface2, 0.)
 if 0:
     #if we want to import an aritrary shape from a file
@@ -117,20 +101,6 @@ plt.plot(p, surface2, color='grey')
 #variables needed for the radiation pattern
 nk = np.zeros([N,2]) #normal of the aperture
 sk = np.zeros([N,2]) #pointying vector
-<<<<<<< HEAD
-Ak_ap = [] #amplitude of each ray at the lens aperture
-path_length = []
-dck = []
-phi_a = np.zeros(N) #phase distribution oiver the array
-Etotal = []
-theta = []
-row = []
-Pk = [list(row) for i in range( 0, N)]  #all the intersection points, each row represents one ray
-
-
-#plotting all the rays, directRayTracingRec(theta_i_y) from file rayTracingRecursive.py
-Pk, Ak_ap, path_length, nk, sk, dck = rtr.directRayTracingRec(theta_i_y )
-=======
 Ak_ap = []
 Pk = np.zeros([N,2])
 
@@ -143,7 +113,6 @@ tp_coeff = np.ones(N)
 
 
 Pk, Ak_ap, path_length, nk, sk, dck, ts_coeff, tp_coeff = rtr.directRayTracingRec(theta_i_y)
->>>>>>> reflections_flat
 Pk_np = np.array(Pk)
 for i in range(0,MAX_ITERATIONS):
     plt.plot([Pk_np[:, i*2], Pk_np[:, i*2+2]], [Pk_np[:, i*2+1], Pk_np[:, i*2+3]], color='black', linewidth = 0.5)
@@ -151,10 +120,6 @@ for i in range(0,MAX_ITERATIONS):
 plt.grid()
 plt.show()
 
-<<<<<<< HEAD
-Etotal, theta = rp.getRadiationPattern(Ak_ap, path_length[1:N-1], nk[1:N-1], sk[1:N-1], dck, Pk_np[1:N-1, 4],Pk_np[1:N-1, 5] )
-Etotal_dB = 20*np.log10(abs(Etotal))
-=======
 
 
 # plt.figure(2)
@@ -171,7 +136,6 @@ Etotal, theta = rp.getRadiationPattern(Ak_ap, path_length[1:N-1], nk[1:N-1], sk[
 Etotal_dB = 20*np.log10(abs(Etotal))
 print(max(Etotal_dB))
 
->>>>>>> reflections_flat
 
 #plot the radiation pattern
 fig2 = plt.figure(3)
@@ -196,15 +160,11 @@ plt.show()
 df = pd.DataFrame(Etotal_dB, theta)
 df.to_excel('RT_radpat_' + str(output_angle) + 'deg.xlsx', sheet_name='Sheet1')
 
-<<<<<<< HEAD
-   
-=======
 
 
     
     
     
->>>>>>> reflections_flat
     
     
     

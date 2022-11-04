@@ -2,9 +2,13 @@
 """
 maria pubill
 """
+from gettext import find
+from re import finditer
 from sys import path
+from turtle import color
 import numpy as np 
 import matplotlib.pyplot as plt
+#rom scipy.interpolate import interp1d
 import input as I
 import pandas as pd
 from scipy.optimize import fsolve
@@ -28,15 +32,9 @@ N = I.N
 L = I.L
 Array = I.Array
 output_angle = I.output_angle
-<<<<<<< HEAD
-m_max = I.m_max
-MAX_ITERATIONS = I.MAX_ITERATIONS
-
-=======
 alpha = I.alpha
 beta = I.beta
 n_diec = I.n_diec
->>>>>>> reflections_flat
 
 #const is the aribtrary variable used to center the face distribution to 0
 if output_angle == 0: const = 292.7
@@ -45,7 +43,9 @@ elif output_angle == 40: const = 386
 elif output_angle == 60: const = 0
 elif output_angle == 80: const = 0
 
+m_max = 1000000000
 long_r3 = h2*3
+MAX_ITERATIONS = I.MAX_ITERATIONS
 
 #=============================================================================
 def f(hi, ci, ki, p): #defining the surface shapes as conics
@@ -137,10 +137,6 @@ def getAngleBtwVectors(v1, v2):
     return np.arctan2( v1[0]*v2[1] - v1[1]*v2[0], v1[0]*v2[0] + v1[1]*v2[1] )
 #=============================================================================
 
-<<<<<<< HEAD
-
-
-=======
 #=============================================================================
 def getReflectionCoefficients(wv, thickness, polaritzation, permittivity, incidentAngle):
     eta = np.sqrt(permittivity-np.sin(incidentAngle)**2)
@@ -159,7 +155,6 @@ class Surface:
         self.n2 = n2
         self.f = function
 
->>>>>>> reflections_flat
 
 #=============================================================================
 def s1(x):
@@ -354,8 +349,3 @@ def directRayTracingRec(theta_i_y):
     df.to_excel('ph_distr_direct_' + str(output_angle) + 'deg.xlsx', sheet_name='Sheet1')
     return Pk, Ak_ap, path_length, nk, sk, dck, T_coeff, R_coeff
     
-
-
-
-
-
