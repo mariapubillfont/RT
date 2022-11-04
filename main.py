@@ -39,13 +39,13 @@ output_angle = I.output_angle
 
 theta_i_y = np.ones(N)*output_angle
 
-# # we read all the input angles obtained with the reverse RT and we interpolate them 
-# df = pd.read_excel('Reverse_anglesIn_' + str(output_angle) + '.xlsx', sheet_name='Sheet1')
-# df_np = np.array(df)
-# thy = df_np[:,1]
-# thy_array = df_np[:,0] 
-# f = interp1d(thy_array, thy, kind='cubic')
-# theta_i_y = -f(Array)  #the input angles in degrees with respect to y-axis
+# we read all the input angles obtained with the reverse RT and we interpolate them 
+df = pd.read_excel('Reverse_anglesIn_' + str(output_angle) + '.xlsx', sheet_name='Sheet1')
+df_np = np.array(df)
+thy = df_np[:,1]
+thy_array = df_np[:,0] 
+f = interp1d(thy_array, thy, kind='cubic')
+theta_i_y = -f(Array)  #the input angles in degrees with respect to y-axis
 
 ##plot the function of the input angles
 # fig = plt.figure()
@@ -63,15 +63,20 @@ def f(hi, ci, ki, p): #defining the surface shapes as conics
     return hi + (ci*pow(p,2))/(1+np.sqrt(1-(1+ki)*pow(ci,2)*pow(p,2)))
 #=============================================================================
 
+def g(hi,x):
+    return np.sqrt(hi**2-x**2)
+
 
 if 1:
-    #surface1 = f(h1, c1, k1, p)
-    surface1 = h1*np.ones(p.size)
+    surface1 = f(h1, c1, k1, p)
+    #surface1 = h1*np.ones(p.size)
+    #surface1 = g(h1,p)
     surface1 = np.where(surface1>0, surface1, 0.)
     # np.savetxt('surface1.csv', surface1, delimiter=',')    
-    #surface2 = f(h2, c2, k2, p)
+    surface2 = f(h2, c2, k2, p)
     
-    surface2 = h2*np.ones(p.size)
+    #surface2 = h2*np.ones(p.size)
+    #surface2 = g(h2,p)
     surface2 = np.where(surface2>0, surface2, 0.)
     # np.savetxt('surface2.csv', surface2, delimiter=',')       
 if 0:
@@ -101,7 +106,7 @@ sk = np.zeros([N,2]) #pointying vector
 Ak_ap = []
 Pk = np.zeros([N,2])
 
-path_length = []
+path_length = np.zeros(N, dtype=np.complex_)
 dck = []
 theta_k = []
 ts_coeff = np.ones(N, dtype=np.complex_)
@@ -131,6 +136,7 @@ plt.show()
 
 Etotal, theta = rp.getRadiationPattern(Ak_ap, path_length[1:N-1], nk[1:N-1], sk[1:N-1], dck, Pk_np[1:N-1, 4], Pk_np[1:N-1, 5], ts_coeff[1:N-1])
 Etotal_dB = 20*np.log10(abs(Etotal))
+print(max(Etotal_dB))
 
 
 #plot the radiation pattern

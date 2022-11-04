@@ -22,6 +22,7 @@ h1 = I.h1
 h2 = I.h2
 p = I.p
 er = I.er
+mur = I.mur
 e0 = I.e0
 n2 = I.n_diec #dielectric refractive index
 n1 = I.n1 #air refractive indeix 
@@ -33,6 +34,7 @@ Array = I.Array
 output_angle = I.output_angle
 alpha = I.alpha
 beta = I.beta
+n_diec = I.n_diec
 
 #const is the aribtrary variable used to center the face distribution to 0
 if output_angle == 0: const = 292.7
@@ -49,10 +51,13 @@ MAX_ITERATIONS = I.MAX_ITERATIONS
 def f(hi, ci, ki, p): #defining the surface shapes as conics
     return hi + (ci*pow(p,2))/(1+np.sqrt(1-(1+ki)*pow(ci,2)*pow(p,2)))
     
-#=============================================================================
-def g(hi, ci, ki, p):
-    if ci < -0.001: return h1
-    else: return h2
+# #=============================================================================
+# def g(hi, ci, ki, p):
+#     if ci < -0.001: return h1
+#     else: return h2
+
+def g(hi,x):
+    return np.sqrt(hi**2-x**2)
 
 #=============================================================================
 def snell(theta_inc, n1, n2):
@@ -101,7 +106,7 @@ def findNormal(x,f):
 
 #=============================================================================
 def getPhaseDisrt_i(d1,d2,d3): #get the phase distribution at the aperture plane
-    return (d1+d3)*k0 + d2*k0*np.sqrt(er)
+    return (d1+d3)*k0 + d2*k0*n_diec
 #=============================================================================
 
 #==================================================
@@ -153,14 +158,17 @@ class Surface:
 
 #=============================================================================
 def s1(x):
-   #return h1 + (c1*pow(x,2))/(1+np.sqrt(1-(1+k1)*pow(c1,2)*pow(x,2)))
-    return h1
+   return h1 + (c1*pow(x,2))/(1+np.sqrt(1-(1+k1)*pow(c1,2)*pow(x,2)))
+   #return np.sqrt(h1**2-x**2)
+    #return h1
 
 surface1 = Surface(n1, n2, s1)
 
 def s2(x):
-   #return h2  + (c2*pow(x,2))/(1+np.sqrt(1-(1+k2)*pow(c2,2)*pow(x,2)))
-    return h2
+    #return np.sqrt(h2**2-x**2)
+
+   return h2  + (c2*pow(x,2))/(1+np.sqrt(1-(1+k2)*pow(c2,2)*pow(x,2)))
+    #return h2
 
 surface2 = Surface(n2, n1, s2)
 
@@ -236,6 +244,7 @@ def ray(vi, ri, x1, y1, iterations, i, nki, ski, Pki, ray_lengthi):
         iterations = iterations + 1
         #plt.plot(p, ri(p), color = 'red', linewidth = 0.5)
         [xi, yi], solution = findIntersectionv2(ri, [x1, y1],vi)
+        plt.plot(xi, yi, 'x', color = 'red')
         f = solution.f
         n_in = solution.n1
         n_out = solution.n2
@@ -253,13 +262,7 @@ def ray(vi, ri, x1, y1, iterations, i, nki, ski, Pki, ray_lengthi):
         v_n_norm = v_n/np.sqrt(v_n[0]**2 + v_n[1]**2) #normal unit vector
         origin = np.array([xi, yi])
         theta_i = getAngleBtwVectors(v_n, vi)
-
-        if f == s1:
-            theta_t = snell(theta_i, n1, n2) #get angle_out with respect to the normal
-        elif f==s2: theta_t = snell(theta_i, n2, n1)   
-        else: theta_t = theta_i
-
-        #theta_t = snell(theta_i, n_in, n_out)
+        theta_t = snell(theta_i, n_in, n_out)
 
         u = np.cos(theta_t)*v_n_norm[0] - np.sin(theta_t)*v_n_norm[1]
         v = np.sin(theta_t)*v_n_norm[0] + np.cos(theta_t)*v_n_norm[1]
@@ -291,12 +294,13 @@ def directRayTracingRec(theta_i_y):
     sk = np.zeros([N,2])
     row = []
     Pk = [list(row) for i in range( 0, N)]
+    Pk_reflected = [list(row) for i in range( 0, N)]
     Ak_ap = np.zeros(N-2)
     theta_k = np.zeros(N)
     dck = np.zeros(N-2)
     phi_a = np.zeros(N)
     ray_length = [ list(row) for i in range( 0, N)]
-    path_length = np.zeros(N)
+    path_length = np.zeros(N, dtype=np.complex_)
     T_coeff = np.ones(N, dtype=np.complex_)
     R_coeff= np.ones(N, dtype=np.complex_)
     permittivity = I.permittivity
@@ -327,9 +331,11 @@ def directRayTracingRec(theta_i_y):
         deltai = -phi_a[i]/k0
         d1 = d1 - deltai
         theta_k[i] = getAngleBtwVectors(nk[i],sk[i]) #angle between normal and pointing
+        
         #path_length[i] =  d1+(np.sqrt(er)-1j*np.sqrt(er)*I.tan_delta/2)*d2
-        #path_length[i] =  d1+(np.sqrt(er)*np.sqrt(1-1j*I.tan_delta))*d2
-        path_length[i] = d1+(np.sqrt(er))*d2
+        
+        path_length[i] =  d1+(np.sqrt(mur)*np.sqrt(er)*np.sqrt(1-1j*I.tan_delta))*d2 if I.reflections == 0 else d1+(np.sqrt(er))*d2
+        #path_length[i] = d1+(np.sqrt(er))*d2
 
         if i>1: #calculating the amplitudes
             Pstart1 = [Pk[i-2][0], Pk[i-2][1]]

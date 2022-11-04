@@ -17,6 +17,7 @@ k0 = I.k0
 alpha = I.alpha
 beta = I.beta
 
+
 # df = pd.read_excel('phaseDistribution_' + str(0) + '.xlsx', sheet_name='Sheet1')
 # df_np = np.array(df)
 # phase = df_np[:,1]
@@ -45,7 +46,6 @@ def norma(u):
     return np.sqrt(u[0]**2 + u[1]**2)
 
 def getRadiationPattern(Ak_ap, path_length, nk, sk, dCk, xap, yap, ts):
-    
     q = 0.1
     theta = np.linspace(0, np.pi, 2500)
     R_obs =1.E9
@@ -76,8 +76,10 @@ def getRadiationPattern(Ak_ap, path_length, nk, sk, dCk, xap, yap, ts):
             Fcos = np.where(Fcos<0,  0., Fcos**0.1)
         else:
             Fcos = np.ones_like(dR)
-        Ez[:] +=  Ak_ap[ii] * Fcos[:] * np.exp(-1j*k0*(path_length[ii]+dR[:])) / (dR[:]) \
-                * (Fk + Gk[:]) * dCk[ii]
+        if I.reflections == 1:
+            Ez[:] +=  Ak_ap[ii] * Fcos[:] * np.exp(-1j*k0*(path_length[ii]+dR[:])) / (dR[:])*(Fk + Gk[:])*dCk[ii]*ts[ii]
+        else:
+            Ez[:] +=  Ak_ap[ii] * Fcos[:] * np.exp(-1j*k0*(path_length[ii]+dR[:])) / (dR[:])*(Fk + Gk[:])*dCk[ii]     
         # Ez[:] +=  Ak_ap[ii] * Fcos[:] * np.exp(-2j*np.pi*(path_length[ii]+dR[:])/I.wv) / (dR[:])    
     # return Ez                                                                                                                 ]
     
