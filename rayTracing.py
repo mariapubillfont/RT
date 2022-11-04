@@ -29,7 +29,7 @@ h2 = I.h2
 
 p = I.p
 er = I.er
-n2 = I.n2 #dielectric refractive index
+n2 = I.n_diec #dielectric refractive index
 n1 = I.n1 #air refractive indeix 
 wv = I.wv # wavelength in mm (defined in the paper)
 k0 = I.k0 #propagation constant in free space
