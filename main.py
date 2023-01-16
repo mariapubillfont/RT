@@ -14,6 +14,7 @@ import matplotlib as mpl
 from scipy.interpolate import interp1d
 import input as I
 import pandas as pd
+import reverse_rayTracing
 
 
 # parameters to define the conic shapes of the dome (all parameters defined in the paper)
@@ -36,66 +37,49 @@ Array = I.Array
 MAX_ITERATIONS = I.MAX_ITERATIONS
 output_angle = I.output_angle
 
+type_surface = I.type_surface
+thickness_ML1 = I.thickness_ML1
+s1 = I.s1
+s2 = I.s2
+matchingLayer1 = I.matchingLayer1
+matchingLayer2 = I.matchingLayer2
 
-theta_i_y = np.ones(N)*output_angle
+surface1 = I.surface1
+MLayer1 = I.MLayer1
+surface2 = I.surface2
+MLayer2 = I.MLayer2
 
-# we read all the input angles obtained with the reverse RT and we interpolate them 
 df = pd.read_excel('Reverse_anglesIn_' + str(output_angle) + '.xlsx', sheet_name='Sheet1')
 df_np = np.array(df)
 thy = df_np[:,1]
 thy_array = df_np[:,0] 
 f = interp1d(thy_array, thy, kind='cubic')
-theta_i_y = -f(Array)  #the input angles in degrees with respect to y-axis
+theta_i_y = f(Array) 
 
-##plot the function of the input angles
-# fig = plt.figure()
-# fig.set_dpi(300)
-# plt.plot(thy_array, thy, '.')
-# plt.plot(Array, f(Array))
-# plt.title('input angles from reverse RT')
-# plt.grid()
-# plt.show() 
-
-
-#=============================================================================
-def f(hi, ci, ki, p): #defining the surface shapes as conics
-    return hi + (ci*pow(p,2))/(1+np.sqrt(1-(1+ki)*pow(ci,2)*pow(p,2)))
-#=============================================================================
-
-def g(hi,x):
-    return np.sqrt(hi**2-x**2)
-
-
-if 1:
-    surface1 = f(h1, c1, k1, p)
-    #surface1 = h1*np.ones(p.size)
-    #surface1 = g(h1,p)
-    surface1 = np.where(surface1>0, surface1, 0.)
-    surface2 = f(h2, c2, k2, p)
-    
-    #surface2 = h2*np.ones(p.size)
-    #surface2 = g(h2,p)
-    surface2 = np.where(surface2>0, surface2, 0.)
 if 0:
     #if we want to import an aritrary shape from a file
     surface1 = np.loadtxt('surface1.csv', delimiter=',')
     surface2 = np.loadtxt('surface2.csv', delimiter=',')
     
-fig = plt.figure(1)
+fig = plt.figure(23)
 fig.set_dpi(300)
 ax1 = fig.add_subplot(111)
 ax1.set_aspect(1, adjustable='box')
 ax1.fill_between(p, surface1, surface2, color = 'lightgrey')
-plt.ylim([-500,1000])
-plt.xlim([-2000,2000])
+plt.ylim([0,1])
+plt.xlim([-I.D,I.D])
 plt.ylabel('z (mm)' )
 plt.xlabel('x (mm)')
 plt.rcParams["font.family"] = "Times New Roman" 
 ax1.xaxis.label.set_fontsize(10)
 ax1.yaxis.label.set_fontsize(10)
-plt.plot(p, surface1, color='grey')
-plt.plot(p, surface2, color='grey')
-
+plt.plot(p, surface1, color='grey', linewidth = 0.5)
+plt.plot(p, surface2, color='grey', linewidth = 0.5)
+if I.matchingLayers:
+    plt.plot(p, MLayer1, color = 'blue', linewidth = 0.1)
+    plt.plot(p, MLayer2, color = 'blue', linewidth = 0.1)
+    ax1.fill_between(p, MLayer1, surface1, color = 'cornflowerblue')
+    ax1.fill_between(p, MLayer2, surface2, color = 'cornflowerblue')
 
 
 #variables needed for the radiation pattern
@@ -103,16 +87,16 @@ nk = np.zeros([N,2]) #normal of the aperture
 sk = np.zeros([N,2]) #pointying vector
 Ak_ap = []
 Pk = np.zeros([N,2])
+phi_a = np.zeros(N)
 
 path_length = np.zeros(N, dtype=np.complex_)
 dck = []
 theta_k = []
 ts_coeff = np.ones(N, dtype=np.complex_)
 tp_coeff = np.ones(N)
-#dR= []
 
 
-Pk, Ak_ap, path_length, nk, sk, dck, ts_coeff, tp_coeff = rtr.directRayTracingRec(theta_i_y)
+Pk, Ak_ap, path_length, nk, sk, dck, ts_coeff, tp_coeff, phi_a = rtr.directRayTracingRec(theta_i_y)
 Pk_np = np.array(Pk)
 for i in range(0,MAX_ITERATIONS):
     plt.plot([Pk_np[:, i*2], Pk_np[:, i*2+2]], [Pk_np[:, i*2+1], Pk_np[:, i*2+3]], color='black', linewidth = 0.5)
@@ -121,18 +105,7 @@ plt.grid()
 plt.show()
 
 
-
-# plt.figure(2)
-# plt.plot(Array, angle_out)
-# plt.xlabel('Array [mm]')
-# plt.ylabel('Angle out [deg]')
-# plt.grid()
-# plt.show()
-# df = pd.DataFrame(angle_out)
-# df.to_excel('theta_out.xlsx', sheet_name='Sheet1')
-
-
-Etotal, theta = rp.getRadiationPattern(Ak_ap, path_length[1:N-1], nk[1:N-1], sk[1:N-1], dck, Pk_np[1:N-1, 4], Pk_np[1:N-1, 5], ts_coeff[1:N-1])
+Etotal, theta = rp.getRadiationPattern(Ak_ap, path_length[1:N-1], nk[1:N-1], sk[1:N-1], dck, Pk_np[1:N-1, 8], Pk_np[1:N-1, 9], ts_coeff[1:N-1])
 Etotal_dB = 20*np.log10(abs(Etotal))
 print(max(Etotal_dB))
 

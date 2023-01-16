@@ -14,8 +14,6 @@ L = I.L
 Array = I.Array
 N = I.N
 k0 = I.k0
-alpha = I.alpha
-beta = I.beta
 
 
 # df = pd.read_excel('phaseDistribution_' + str(0) + '.xlsx', sheet_name='Sheet1')
@@ -53,6 +51,8 @@ def getRadiationPattern(Ak_ap, path_length, nk, sk, dCk, xap, yap, ts):
     # print(Pk_ap)                                                                                                                    
 
     Ez = np.zeros(len(theta)) + 0.j
+    Ap_field = np.zeros(len(xap)) + 0.j
+
     Xobs = np.cos(theta)*R_obs
     Yobs = np.sin(theta)*R_obs
     Xdip = xap
@@ -77,10 +77,22 @@ def getRadiationPattern(Ak_ap, path_length, nk, sk, dCk, xap, yap, ts):
         else:
             Fcos = np.ones_like(dR)
         if I.reflections == 1:
-            Ez[:] +=  Ak_ap[ii] * Fcos[:] * np.exp(-1j*k0*(path_length[ii]+dR[:])) / (dR[:])*(Fk + Gk[:])*dCk[ii]*ts[ii]
+            Ez[:] +=  Ak_ap[ii] * Fcos[:] * np.exp(-1j*k0*(path_length[ii]+dR[:])) / (dR[:])*(Fk + Gk[:])*dCk[ii]*(ts[ii])
+            
+            
+            
+            Ap_field[ii] = Ak_ap[ii]*dCk[ii]*np.exp(-1j*k0*(path_length[ii]))*abs(ts[ii])
         else:
             Ez[:] +=  Ak_ap[ii] * Fcos[:] * np.exp(-1j*k0*(path_length[ii]+dR[:])) / (dR[:])*(Fk + Gk[:])*dCk[ii]     
         # Ez[:] +=  Ak_ap[ii] * Fcos[:] * np.exp(-2j*np.pi*(path_length[ii]+dR[:])/I.wv) / (dR[:])    
-    # return Ez                                                                                                                 ]
-    
+    # return Ez  
+    # 
+    # 
+    #     # return Ez     
+    # plt.figure()
+    # plt.plot(xap, (np.angle(ts))/k0)
+    # plt.plot(xap, (abs(path_length)))
+    # plt.legend(['angle', 'path length'])
+    # plt.grid()#  #                                                                                                                ]
+    # plt.show()
     return Ez, theta
