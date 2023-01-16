@@ -12,12 +12,12 @@ c2 = -0.0005*1e3
 k1 = -1.2
 k2 = -3.9
 h1 = 0.325
-h2 = 0.345
+h2 = 0.425
 #h2 = 345
 # h1 = 500
 # h2 = 600
 
-N = 100
+N = 50
  #number of rays
 D = 1.500
 p = np.linspace(-D, D, 10000) #number of points, represents the x-axis
@@ -32,18 +32,18 @@ wv = c0/f # wavelength in mm (defined in the paper)
 k0 = 2*np.pi/wv #propagation constant in free space
 L = 3*0.325 #length of the Array (hmax = L/3) (defined in the paper)
 Array = np.linspace (-L/2, L/2, N) #the starting points of the rays over the array
-output_angle = 40 #in degrees
+output_angle = 60 #in degrees
 MAX_ITERATIONS = 5
 
 m_max = 10000000 #max slope possible
 const=40
 long = 0.300 #how long is the final point of the rays
 
-#type_surface = 'flat'
-type_surface = 'conic'
+type_surface = 'flat'
+#type_surface = 'conic'
 #type_surface = 'circular'
 #type_surface = 'oblique'
-ITU_model = 0
+ITU_model = 1
 matchingLayers = True
 
 losses = 0
@@ -52,7 +52,7 @@ reflections = 1
 tan_delta = 0.00066 if losses == 1 else 0
 
 
-er = 1
+er = 2.5
 
 mur = 1
 if reflections == 0:

@@ -325,14 +325,10 @@ for i in range(0, len(p_points)):
     if isinstance(Pk[i], int): 
         continue
 
-    
-    # if (nk[i] ):
-    #     print('Critical angle for element ', i+1, ' ', np.rad2deg((getAngleBtwVectors(sk[i], nk[i]))))
-    #     #continue
     x0 = Pk[i][len(Pk[i])-2]
     y0 = Pk[i][len(Pk[i])-1]
     Pk_np = np.array(Pk[i])
-    if abs(x0) <= max(Array)+0.004 and y0 >= 0 :
+    if abs(x0) <= max(Array)+0.04 and y0 >= 0 :
         angle_in = np.append(angle_in, getAngleBtwVectors(sk[i], [0, -1]))
         phi_array = np.append(phi_array, x0)
         for m in range(0,I.MAX_ITERATIONS):

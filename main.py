@@ -66,8 +66,12 @@ fig.set_dpi(300)
 ax1 = fig.add_subplot(111)
 ax1.set_aspect(1, adjustable='box')
 ax1.fill_between(p, surface1, surface2, color = 'lightgrey')
-plt.ylim([0,1])
-plt.xlim([-I.D,I.D])
+# plt.ylim([0,1])
+# plt.xlim([-I.D,I.D])
+
+plt.ylim([0, 0.700])
+plt.xlim([-0.800,0.800])
+
 plt.ylabel('z (mm)' )
 plt.xlabel('x (mm)')
 plt.rcParams["font.family"] = "Times New Roman" 
@@ -101,7 +105,7 @@ Pk_np = np.array(Pk)
 for i in range(0,MAX_ITERATIONS):
     plt.plot([Pk_np[:, i*2], Pk_np[:, i*2+2]], [Pk_np[:, i*2+1], Pk_np[:, i*2+3]], color='black', linewidth = 0.5)
 
-plt.grid()
+#plt.grid()
 plt.show()
 
 

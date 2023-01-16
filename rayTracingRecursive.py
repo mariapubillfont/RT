@@ -320,9 +320,27 @@ def directRayTracingRec(theta_i_y):
                 return (v_n_norm[1]/v_n_norm[0])*(x-x_in)+y_in 
             intersections = findIntersectionv2(r_normal, [x_ap, y_ap], nk[i], 1)
 
-            layerThickness = [0, distance(intersections[0], intersections[1]), distance(intersections[2], intersections[1]), distance(intersections[2], intersections[3]), 0]
+            def r_exitPoint_ap(x):
+                return I.m_line1*(x-x_ap)+y_ap   
+            def r_exitPoint_ml1(x):
+                return I.m_line1*(x-x_ml1)+y_ml1 
+            def r_exitPoint_ml2(x):
+                return I.m_line1*(x-x_ml2)+y_ml2        
+
+            intersection_ap = findInt(r_normal, r_exitPoint_ap)
+            intersection_ml1 = findInt(r_normal, r_exitPoint_ml1)
+            intersection_ml2 = findInt(r_normal, r_exitPoint_ml2)
+
+            # plt.plot(p, r_normal(p), color = 'red')
+            # plt.plot(p, r_exitPoint_ml2(p), color = 'blue')
+            # plt.plot(intersection_ml2[0],intersection_ml2[1], 'x' , color = 'green')
+            # plt.plot(x_in, y_in, 'x' , color = 'green')    
+            
+            #layerThickness = [0, distance(intersections[0], intersections[1]), distance(intersections[2], intersections[1]), distance(intersections[2], intersections[3]), 0]
+            layerThickness = [0, distance([x_in, y_in], intersection_ml1), distance(intersection_ml1, intersection_ml2), distance(intersection_ml2, intersection_ap), 0]
+           # layerThickness = [0, 0,  distance(intersection_ml1, intersection_ml2), 0, 0]
             complexPermittivity = [1, np.sqrt(er), er, np.sqrt(er), 1]
-            T_coeff[i], R_coeff[i] = itu.getReflectionCoefficients_multiLayer(k0, layerThickness, 'TE', complexPermittivity, incident_angle[i])
+            T_coeff[i], R_coeff[i] = itu.getReflectionCoefficients_multiLayer(k0, layerThickness, 'TE', complexPermittivity, incident_angle[i][0])
 
         else:
             def r_normal(x):
