@@ -1,4 +1,4 @@
-
+ 
 # Test the P2040 multilayer model for non-air material in last layer
 
 import numpy as np
@@ -82,12 +82,19 @@ def multiLayerTransferMatrix(theta_in, t, er, frequency, pol):
 def getReflectionCoefficients_ML(incidentAngle, layerThickness_in, er, frequency):
     lambd = 299792458/frequency
     k_0 = 2*np.pi/lambd
+    if len(layerThickness_in) == 1:
+        layerThickness_in = np.pad(layerThickness_in, (1,1), 'constant', constant_values=(0,0))
+        incidentAngle = np.pad(incidentAngle, (1,1), 'edge')
+
     d_core = layerThickness_in[1]
+    
     ################################# First matching interface #####################################################################
     #incidenceAngleRadians1 = np.transpose(np.linspace(0,np.pi/2,91))
     incidenceAngleRadians1 = incidentAngle[0]
-    layerThickness = [0, layerThickness_in[0], 0] # Matching layer
-    complexRelativePermittivity = [1, np.sqrt(er), er] # From air to dielectric
+    #layerThickness = [0, layerThickness_in[0], 0] # Matching layer
+    #complexRelativePermittivity = [1, np.sqrt(er), er] # From air to dielectric
+    layerThickness = [0, layerThickness_in[0]]
+    complexRelativePermittivity = [1, er] # From air to dielectric
 
     # Transfer matrix model
     rTE1 = np.ones([np.size(incidenceAngleRadians1),1],dtype=np.complex_)
@@ -127,9 +134,11 @@ def getReflectionCoefficients_ML(incidentAngle, layerThickness_in, er, frequency
 
 
     ################################### Second matching interface#################################################################
-    layerThickness = [0,  layerThickness_in[2], 0] # Matching layer
-    complexRelativePermittivity = [er, np.sqrt(er), 1] # From dielectric to air
-    
+    #layerThickness = [0,  layerThickness_in[2], 0] # Matching layer
+    #complexRelativePermittivity = [er, np.sqrt(er), 1] # From dielectric to air
+    layerThickness = [layerThickness_in[2], 0] # Matching layer
+    complexRelativePermittivity = [er,  1] # From dielectric to air
+
     incidenceAngleRadians2 = incidentAngle[2]
     # Transfer matrix model
     rTE3 = np.ones([np.size(incidenceAngleRadians2),1], dtype=np.complex_)

@@ -1,118 +1,147 @@
 ## -*- coding: utf-8 -*-
-"""
-Created on Tue May 10 15:43:04 2022
-@author: maria pubill
-"""
-from cmath import cos, log
-from configparser import MAX_INTERPOLATION_DEPTH
-import rayTracing as rt
-import rayTracingRecursive as rtr
+
+import rayTracing as rt_line
 import radPat as rp
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib as mpl
 from scipy.interpolate import interp1d
 import input as I
 import pandas as pd
-import reverse_rayTracing
+import rayTubes as rtube
 
-
-# parameters to define the conic shapes of the dome (all parameters defined in the paper)
-c1 = I.c1
-c2 = I.c2
-k1 = I.k1
-k2 = I.k2
-h1 = I.h1
 h2 = I.h2
-# parameters to define the Array
+p = I.p
+n2 = I.n_diec #dielectric refractive index
+n1 = I.n1 #air refractive indeix 
+nML = I.nML
 N = I.N
 L = I.L
-p = I.p
-er = I.er
-n2 = I.n2 #dielectric refractive index
-n1 = I.n1 #air refractive indeix 
-wv = I.wv # wavelength in mm (defined in the paper)
-k0 = I.k0
 Array = I.Array
-MAX_ITERATIONS = I.MAX_ITERATIONS
-output_angle = I.output_angle
+D = I.D
+m_max = I.m_max
+k0 = I.k0
 
-type_surface = I.type_surface
-thickness_ML1 = I.thickness_ML1
 s1 = I.s1
 s2 = I.s2
+s0 = I.s0
 matchingLayer1 = I.matchingLayer1
 matchingLayer2 = I.matchingLayer2
+surface1_arr = I.surface1
+MLayer1_arr = I.MLayer1
+surface2_arr = I.surface2
+MLayer2_arr = I.MLayer2
+aperture_plane = I.aperture_plane
 
-surface1 = I.surface1
-MLayer1 = I.MLayer1
-surface2 = I.surface2
-MLayer2 = I.MLayer2
+class LineSegment:
+    def __init__(self, normal0, normal1, n1, n2, A, B, u, t, isLast, isFirst):
+        self.normal0 = normal0 #normal of the starting point of the segment
+        self.normal1 = normal1 #normal of the end point of the segment        self.n1 = n1
+        self.n2 = n2
+        self.A = A
+        self.B = B
+        self.u = u
+        self.t = t
+        self.isLast = isLast
+        self.isFirst = isFirst
 
-df = pd.read_excel('Reverse_anglesIn_' + str(output_angle) + '.xlsx', sheet_name='Sheet1')
-df_np = np.array(df)
-thy = df_np[:,1]
-thy_array = df_np[:,0] 
-f = interp1d(thy_array, thy, kind='cubic')
-theta_i_y = f(Array) 
+class Ray:
+    def __init__(self, Pk, sk, normals, ray_lengths, idxs):
+        self.Pk = Pk #all the intersection points between the initial ray and the segments
+        self.sk = sk #value of the last pointing vector, direction of ray coming out from the dome
+        self.normals = normals #array with all the normals for each intersection point
+        self.ray_lengths = ray_lengths #all distances travelled by the ray, including from  the dome to the aperture plane
+        self.idxs = idxs #indexes of all intersected segments        
 
-if 0:
-    #if we want to import an aritrary shape from a file
-    surface1 = np.loadtxt('surface1.csv', delimiter=',')
-    surface2 = np.loadtxt('surface2.csv', delimiter=',')
-    
-fig = plt.figure(23)
-fig.set_dpi(300)
-ax1 = fig.add_subplot(111)
-ax1.set_aspect(1, adjustable='box')
-ax1.fill_between(p, surface1, surface2, color = 'lightgrey')
-# plt.ylim([0,1])
-# plt.xlim([-I.D,I.D])
+segments =[]
+segments = np.append(segments, rt_line.discretize_function(s0, 1, 1,1, False, True))
+segments = np.append(segments, rt_line.discretize_function(s1, 30, nML, n2, False, False))
+segments = np.append(segments, rt_line.discretize_function(s2, 30, n2, nML, False, False))
+segments = np.append(segments, rt_line.discretize_function(aperture_plane, 1, 1, 1, True, False))
 
-plt.ylim([0, 0.700])
-plt.xlim([-0.800,0.800])
-
-plt.ylabel('z (mm)' )
-plt.xlabel('x (mm)')
-plt.rcParams["font.family"] = "Times New Roman" 
-ax1.xaxis.label.set_fontsize(10)
-ax1.yaxis.label.set_fontsize(10)
-plt.plot(p, surface1, color='grey', linewidth = 0.5)
-plt.plot(p, surface2, color='grey', linewidth = 0.5)
 if I.matchingLayers:
-    plt.plot(p, MLayer1, color = 'blue', linewidth = 0.1)
-    plt.plot(p, MLayer2, color = 'blue', linewidth = 0.1)
-    ax1.fill_between(p, MLayer1, surface1, color = 'cornflowerblue')
-    ax1.fill_between(p, MLayer2, surface2, color = 'cornflowerblue')
+    segments = np.append(segments, rt_line.discretize_function(matchingLayer1, 30, n1, nML, False, False))
+    segments = np.append(segments, rt_line.discretize_function(matchingLayer2, 30, nML, n1, False, False))
 
 
-#variables needed for the radiation pattern
+# if 0:
+#     #if we want to import an aritrary shape from a file
+#     surface1 = np.loadtxt('surface1.csv', delimiter=',')
+#     surface2 = np.loadtxt('surface2.csv', delimiter=',')
+
+
+################################# REVERSE ##########################################3
+angle_in = []
+angle_position = []
+angle_in, angle_position = rt_line.reverseRayTracing_segments(I.output_angle, segments)
+f = interp1d(angle_position, angle_in, kind='cubic')
+angles_for_direct = f(Array)
+################################# END REVERSE ##########################################3
+
+
+
+################################# DIRECT ##########################################3
+angle_in = np.ones(N)*np.deg2rad(I.output_angle)
+fig = plt.figure(2)
+fig.set_dpi(300)
+ax = fig.add_subplot(111)
+csfont = {'fontname':'Times New Roman'}
+plt.ylim([0,0.750])
+plt.xlim([-0.8, 0.8])
+plt.ylabel('z (mm)')
+plt.xlabel('x (mm)')
+plt.title('Direct Ray Tracing', **csfont)
+plt.plot(p, surface1_arr, color='grey', linewidth = 0.5)
+plt.plot(p, surface2_arr, color='grey', linewidth = 0.5)
+plt.plot(p, MLayer1_arr, color = 'chocolate', linewidth = 0.1)
+plt.plot(p, MLayer2_arr, color = 'chocolate', linewidth = 0.1)
+ax.fill_between(p, MLayer1_arr, surface1_arr, color = 'orange')
+ax.fill_between(p, MLayer2_arr, surface2_arr, color = 'orange')
+ax.set_aspect(1, adjustable='box')
+for i in range(0, len(segments)):
+    plt.plot([segments[i].A[0], segments[i].B[0]], [segments[i].A[1], segments[i].B[1]], color = 'red', linewidth = 0.5)
+
+
+Ak_ap = []
+phi_a = np.zeros(N)
+dck = []
+rays = []
+x_ap = np.zeros(N)
+y_ap = np.zeros(N)
+
+rays = rt_line.directRayTracing_segments(angles_for_direct, segments)
+for i in range(0, len(rays)):
+    Pk_np = rays[i].Pk
+    for j in range(0, len(Pk_np)-3):
+        if j % 2 == 0:
+            plt.plot([Pk_np[j], Pk_np[j+2]], [Pk_np[j+1], Pk_np[j+3]], color='black', linewidth = 1)
+            x_ap[i] = Pk_np[j]
+            y_ap[i] = Pk_np[j+1]    
+
+################################# END DIRECT, END GO ##########################################3
+
+
+
+############################## RAY TUBE THEORY ##########################################3
+path_length = np.zeros(N, dtype=np.complex_)
 nk = np.zeros([N,2]) #normal of the aperture
 sk = np.zeros([N,2]) #pointying vector
-Ak_ap = []
-Pk = np.zeros([N,2])
-phi_a = np.zeros(N)
-
-path_length = np.zeros(N, dtype=np.complex_)
-dck = []
-theta_k = []
 ts_coeff = np.ones(N, dtype=np.complex_)
-tp_coeff = np.ones(N)
 
+#all these functions can be optimized
+path_length = rtube.getPathLength(rays, segments)
+nk, sk = rtube.getLastNormal(rays)
+ts_coeff = rtube.getTransmissionCoef(rays, segments)
+Ak_ap, dck = rtube.getAmplitude(rays, segments)
 
-Pk, Ak_ap, path_length, nk, sk, dck, ts_coeff, tp_coeff, phi_a = rtr.directRayTracingRec(theta_i_y)
-Pk_np = np.array(Pk)
-for i in range(0,MAX_ITERATIONS):
-    plt.plot([Pk_np[:, i*2], Pk_np[:, i*2+2]], [Pk_np[:, i*2+1], Pk_np[:, i*2+3]], color='black', linewidth = 0.5)
-
-#plt.grid()
+plt.grid()
 plt.show()
 
 
-Etotal, theta = rp.getRadiationPattern(Ak_ap, path_length[1:N-1], nk[1:N-1], sk[1:N-1], dck, Pk_np[1:N-1, 8], Pk_np[1:N-1, 9], ts_coeff[1:N-1])
+
+############################## RADIATION PATTERN - KIRCHOFF ##########################################3
+Etotal, theta = rp.getRadiationPattern(Ak_ap, path_length[1:N-1], nk[1:N-1], sk[1:N-1], dck, x_ap[1:N-1], y_ap[1:N-1], ts_coeff[1:N-1])
 Etotal_dB = 20*np.log10(abs(Etotal))
 print(max(Etotal_dB))
-
 
 #plot the radiation pattern
 fig2 = plt.figure(3)
@@ -127,15 +156,14 @@ plt.xlabel('$\u03B8 $, degrees')
 plt.xticks(range(-90, 91, 10))
 plt.yticks(range(-35, 10, 5))
 plt.rcParams["font.family"] = "Times New Roman" 
-ax1.xaxis.label.set_fontsize(10)
-ax1.yaxis.label.set_fontsize(10)
-mpl.rcParams.update({'font.size': 10})
+ax2.xaxis.label.set_fontsize(10)
+ax2.yaxis.label.set_fontsize(10)
 plt.grid()
 plt.show()
 
-#saving the radiation pattern results in an excel
+##saving the radiation pattern results in an excel
 df = pd.DataFrame(Etotal_dB, theta)
-df.to_excel('RT_radpat_' + str(output_angle) + 'deg.xlsx', sheet_name='Sheet1')
+df.to_excel('RT_radpat_' + str(I.output_angle) + 'deg.xlsx', sheet_name='Sheet1')
 
 
 

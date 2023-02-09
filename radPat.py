@@ -78,21 +78,9 @@ def getRadiationPattern(Ak_ap, path_length, nk, sk, dCk, xap, yap, ts):
             Fcos = np.ones_like(dR)
         if I.reflections == 1:
             Ez[:] +=  Ak_ap[ii] * Fcos[:] * np.exp(-1j*k0*(path_length[ii]+dR[:])) / (dR[:])*(Fk + Gk[:])*dCk[ii]*(ts[ii])
-            
-            
-            
+      
             Ap_field[ii] = Ak_ap[ii]*dCk[ii]*np.exp(-1j*k0*(path_length[ii]))*abs(ts[ii])
         else:
             Ez[:] +=  Ak_ap[ii] * Fcos[:] * np.exp(-1j*k0*(path_length[ii]+dR[:])) / (dR[:])*(Fk + Gk[:])*dCk[ii]     
-        # Ez[:] +=  Ak_ap[ii] * Fcos[:] * np.exp(-2j*np.pi*(path_length[ii]+dR[:])/I.wv) / (dR[:])    
-    # return Ez  
-    # 
-    # 
-    #     # return Ez     
-    # plt.figure()
-    # plt.plot(xap, (np.angle(ts))/k0)
-    # plt.plot(xap, (abs(path_length)))
-    # plt.legend(['angle', 'path length'])
-    # plt.grid()#  #                                                                                                                ]
-    # plt.show()
+
     return Ez, theta

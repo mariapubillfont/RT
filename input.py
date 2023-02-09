@@ -4,60 +4,53 @@ Created on Fri May 13 13:03:37 2022
 @author: maria
 """
 import numpy as np
-
-
 # parameters to define the conic shapes of the dome (all parameters defined in the paper)
 c1 = -0.0021*1e3
 c2 = -0.0005*1e3
 k1 = -1.2
 k2 = -3.9
 h1 = 0.325
-h2 = 0.425
-#h2 = 345
-# h1 = 500
-# h2 = 600
-
-N = 50
- #number of rays
+h2 = 0.345
 D = 1.500
 p = np.linspace(-D, D, 10000) #number of points, represents the x-axis
-# er = 2.5 #dielectric constant of the dielectric
-# mur = 1
 e0 = 8.8541878128e-12
-
-
 f = 13e9
 c0 = 299792458
 wv = c0/f # wavelength in mm (defined in the paper)
 k0 = 2*np.pi/wv #propagation constant in free space
 L = 3*0.325 #length of the Array (hmax = L/3) (defined in the paper)
-Array = np.linspace (-L/2, L/2, N) #the starting points of the rays over the array
-output_angle = 60 #in degrees
-MAX_ITERATIONS = 5
-
 m_max = 10000000 #max slope possible
 const=40
 long = 0.300 #how long is the final point of the rays
 
-type_surface = 'flat'
-#type_surface = 'conic'
-#type_surface = 'circular'
+N = 100
+Array = np.linspace (-L/2, L/2, N) #the starting points of the rays over the array
+output_angle = 60 #in degrees
+spacing = 10
+MAX_ITERATIONS = 5
+
+#type_surface = 'flat'
+type_surface = 'conic'
 #type_surface = 'oblique'
-ITU_model = 1
-matchingLayers = True
+
+ITU_model = 0
+matchingLayers = False
+if matchingLayers:
+    nSurfaces = 4
+else:
+    nSurfaces = 2    
+
+er = 2.5
+mur = 1
 
 losses = 0
 reflections = 1
-
 tan_delta = 0.00066 if losses == 1 else 0
 
 
-er = 2.5
-
-mur = 1
-if reflections == 0:
-    er = np.sqrt(er)
-    mur = np.sqrt(er)
+# if reflections == 0:
+#     er = np.sqrt(er)
+#     mur = np.sqrt(er)
 
 
 n2 = np.sqrt(er) #dielectric refractive index
@@ -76,12 +69,25 @@ line2_pointB = [0.7277, 0.250]
 m_line1 = (line1_pointB[1] - line1_pointA[1])/(line1_pointB[0] - line1_pointA[0])
 m_line2 = (line2_pointB[1] - line2_pointA[1])/(line2_pointB[0] - line2_pointA[0])
 
-nSurfaces = 4
+
+
+theta_out_x = np.deg2rad(90-output_angle)
+theta_i_y = np.ones(N)*output_angle
+y_r_max = np.sin(theta_out_x)*h2*3
+x_r_max = np.cos(theta_out_x)*D*np.sign(output_angle)
+m3 = np.tan(theta_out_x)
+if m3 > m_max: m3=m_max
+m_t = -1./m3
+def aperture_plane(x):
+    return m_t*(x - x_r_max) + y_r_max
+
+
+def s0(x):
+    return 0
 
 def s1(x):
     if type_surface == 'flat' : return h1
     elif type_surface == 'conic': return h1 + (c1*pow(x,2))/(1+np.sqrt(1-(1+k1)*pow(c1,2)*pow(x,2)))
-    elif type_surface == 'circular': return np.sqrt(h1**2-x**2)
     elif type_surface == 'oblique' : return  m_line1*(x-line1_pointA[0]) + line1_pointA[1]
 
 def matchingLayer1(x):
@@ -92,7 +98,6 @@ def matchingLayer1(x):
 def s2(x):
     if type_surface == 'flat' : return h2
     elif type_surface == 'conic': return h2  + (c2*pow(x,2))/(1+np.sqrt(1-(1+k2)*pow(c2,2)*pow(x,2)))
-    elif type_surface == 'circular': return np.sqrt(h2**2-x**2)  
     elif type_surface == 'oblique' : return  m_line2*(x-line2_pointA[0]) + line2_pointA[1]
 
 def matchingLayer2(x):

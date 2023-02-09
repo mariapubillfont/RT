@@ -29,4 +29,4 @@ def getReflectionCoefficients_multiLayer(k_0, layerThickness, polaritzation, com
     else:
         r = G[0]/F[0] #reflection and transmission for TM polartization
         t = 1/F[0]
-    return t, r
+    return t
