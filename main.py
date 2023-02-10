@@ -54,15 +54,18 @@ class Ray:
 
 segments =[]
 segments = np.append(segments, rt_line.discretize_function(s0, 1, 1,1, False, True))
-segments = np.append(segments, rt_line.discretize_function(s1, 30, nML, n2, False, False))
-segments = np.append(segments, rt_line.discretize_function(s2, 30, n2, nML, False, False))
 segments = np.append(segments, rt_line.discretize_function(aperture_plane, 1, 1, 1, True, False))
 
 if I.matchingLayers:
     segments = np.append(segments, rt_line.discretize_function(matchingLayer1, 30, n1, nML, False, False))
+    segments = np.append(segments, rt_line.discretize_function(s1, 30, nML, n2, False, False))
+    segments = np.append(segments, rt_line.discretize_function(s2, 30, n2, nML, False, False))
     segments = np.append(segments, rt_line.discretize_function(matchingLayer2, 30, nML, n1, False, False))
 
 
+else: 
+    segments = np.append(segments, rt_line.discretize_function(s1, 30, n1, n2, False, False))
+    segments = np.append(segments, rt_line.discretize_function(s2, 30, n2, n1, False, False))
 # if 0:
 #     #if we want to import an aritrary shape from a file
 #     surface1 = np.loadtxt('surface1.csv', delimiter=',')
