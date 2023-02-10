@@ -25,7 +25,7 @@ long = 0.300 #how long is the final point of the rays
 
 N = 100
 Array = np.linspace (-L/2, L/2, N) #the starting points of the rays over the array
-output_angle = 60 #in degrees
+output_angle = 0 #in degrees
 spacing = 10
 MAX_ITERATIONS = 5
 
@@ -33,7 +33,7 @@ MAX_ITERATIONS = 5
 type_surface = 'conic'
 #type_surface = 'oblique'
 
-ITU_model = 0
+ITU_model = 1
 matchingLayers = False
 if matchingLayers:
     nSurfaces = 4
