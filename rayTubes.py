@@ -5,6 +5,7 @@ import input as I
 import pandas as pd
 import reflections_TM_model as multilayer  
 import reflections_ITU_model as itu
+import sys
 
 h2 = I.h2
 p = I.p
@@ -23,6 +24,10 @@ k0 = I.k0
 nSurfaces = I.nSurfaces
 reflections = I.reflections
 
+#==================================================
+def print_error(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+#==================================================
 
 #==================================================
 def distance(pointA, pointB):
@@ -200,9 +205,13 @@ def getTransmissionCoef(rays, segments):
 
 
         if I.ITU_model == 1:
-            layerThickness =  np.pad(thickness_itu, (1, 1), 'constant', constant_values=(0,0)) 
-            complexPermittivity = [1, np.sqrt(er), er, np.sqrt(er), 1]
-            complexPermittivity = [1, er, 1]
+            layerThickness =  np.pad(thickness_itu, (1, 1), 'constant', constant_values=(0,0))
+            if I.nSurfaces == 4:
+                complexPermittivity = [1, np.sqrt(er), er, np.sqrt(er), 1]
+            elif I.nSurfaces == 2:
+                complexPermittivity = [1, er, 1]
+            else:
+                print_error('Unsupported number of layers!')
             ts_coeff[i] = itu.getReflectionCoefficients_multiLayer(k0, layerThickness, 'TE', complexPermittivity, incident_angle[0])
         else:
             ts_coeff[i] = multilayer.getReflectionCoefficients_ML(incident_angle, thickness, er, I.f)
