@@ -44,26 +44,30 @@ def norma(u):
     return np.sqrt(u[0]**2 + u[1]**2)
 
 def getRadiationPattern(Ak_ap, path_length, nk, sk, dCk, xap, yap, ts):
+    #Ak_ap - Amplitude coefficients on the aperature
+    #path_length - 
+    #nk - normal vector of 
+
     q = 0.1
-    theta = np.linspace(0, np.pi, 2500)
-    R_obs =1.E9
-    E = np.zeros(len(theta),complex)
+    theta = np.linspace(0, np.pi, 2500)                 #Theta values on farfield sphere
+    R_obs =1.E9                                         #radius farfiedl sphere
+    E = np.zeros(len(theta),complex)                    
     # print(Pk_ap)                                                                                                                    
 
     Ez = np.zeros(len(theta)) + 0.j
     Ap_field = np.zeros(len(xap)) + 0.j
 
-    Xobs = np.cos(theta)*R_obs
-    Yobs = np.sin(theta)*R_obs
-    Xdip = xap
-    Ydip = yap
+    Xobs = np.cos(theta)*R_obs                          #observation point, farfield sphere
+    Yobs = np.sin(theta)*R_obs                          #^
+    Xdip = xap                                          #point on aperture
+    Ydip = yap                                          #^
     unvL = nk
-    for ii in range(len(xap)):
+    for ii in range(len(xap)):                          #for each point on the aperture
         dR = np.zeros(len(theta))
         vRx = Xobs[:]-Xdip[ii]
         vRy = Yobs[:]-Ydip[ii]
-        dR = np.sqrt(vRx**2+vRy**2)  #Distance between sources and observation points.
-        uvRx = vRx/dR; uvRy = vRy/dR # Unit vector associated with vR
+        dR = np.sqrt(vRx**2+vRy**2)                     #Distance between sources and observation points.
+        uvRx = vRx/dR; uvRy = vRy/dR                    # Unit vector associated with vR
         Gk = uvRx*unvL[ii,0] + uvRy*unvL[ii,1]
         uvSx, uvSy = sk[ii,0], sk[ii,1]
         Fk = uvSx*unvL[ii,0] + uvSy*unvL[ii,1]
@@ -73,6 +77,7 @@ def getRadiationPattern(Ak_ap, path_length, nk, sk, dCk, xap, yap, ts):
             # uvSx, uvSy = uvs[0,ii], uvs[1,ii]
             # uvSx, uvSy = sk[ii,0], sk[ii,1]
             Fcos = uvSx*uvRx + uvSy*uvRy
+            #gives runtime error due to pwer of negative values
             Fcos = np.where(Fcos<0,  0., Fcos**0.1)
         else:
             Fcos = np.ones_like(dR)

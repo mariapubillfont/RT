@@ -61,36 +61,40 @@ def intersect_line_seg(p1, p2, p3, p4):
     return (x,y)
 #=============================================================================
 
-
-def getPhaseDisrt_i(ray_length, idxs, segments): #get the phase distribution at the aperture plane
+ 
+def getPhaseDisrt_i(ray_length, idxs, segments):                    #get the phase distribution as the wave travels
     phi_i = 0
-    for j in range(0, len(idxs)): #we want to include last surface (aperture)
-        idx = int(idxs[j])
-        phi_i += ray_length[j]*segments[idx].n1*k0   
+    for j in range(0, len(idxs)):                                   #we want to include last surface (aperture)
+        idx = int(idxs[j])                                          #segment index
+        phi_i += ray_length[j]*segments[idx].n1*k0                  #phase 
     return phi_i
 
 def getPathLength(rays, segments):
+    #rays - all of the rays
+    #segments - segments of surfaces
+
     path_length = np.zeros(N)
     phi_a = np.zeros(N)
-    for i in range(0, len(rays)):
-        ray_length = rays[i].ray_lengths
-        idxs = rays[i].idxs
-        phi_i = getPhaseDisrt_i(ray_length, idxs, segments)
-        phi_a[i] = -phi_i
-        for j in range(0, len(idxs)-1): #-1 because we want to skip the last surface (aperture)
+    for i in range(0, len(rays)):                                   #for each ray
+        ray_length = rays[i].ray_lengths                            #physical length traveled between each segment
+        idxs = rays[i].idxs                                         #index for segment intersections
+        phi_i = getPhaseDisrt_i(ray_length, idxs, segments)         #calculate phase shift from aperture plane to array for ray
+        phi_a[i] = -phi_i                                           #initial phase on array set to get uniform phase on the output
+        for j in range(0, len(idxs)-1):                             #-1 because we want to skip the last surface (aperture)
             idx = int(idxs[j])
             if  j == 0:
-                path_length[i] = path_length[i] + ray_length[j]*segments[idx].n1 - phi_i/k0    
+                path_length[i] = path_length[i] + ray_length[j]*segments[idx].n1 - phi_i/k0   
             elif reflections == 0: 
                 path_length[i] = path_length[i] + ray_length[j]*segments[idx].n1
 
+    #save phase distribution on the array
     #df = pd.DataFrame(phi_a, Array)
     #df.to_excel('ph_distr_direct_' + str(I.output_angle) + 'deg.xlsx', sheet_name='Sheet1')            
     return path_length
 
 def getLastNormal(rays):
-    nk =  np.zeros([N,2])
-    sk = np.zeros([N,2])
+    nk =  np.zeros([N,2])                   #normal of intersection point
+    sk = np.zeros([N,2])                    #poynting vector
     for i in range(0, len(rays)):
         sk[i] = rays[i].sk
         normals_aux = rays[i].normals
@@ -99,97 +103,105 @@ def getLastNormal(rays):
 
 
 #=============================================================================
-def calculateRayTubeAmpl(Pk, Pk1, Pk_ap, Pk_ap1, theta): #get the amplitude of the E field at the aperture plane.
-    dLk = distance(Pk, Pk1)/2
-    dck_ap = distance(Pk_ap, Pk_ap1)/2
+def calculateRayTubeAmpl(Pk, Pk1, Pk_ap, Pk_ap1, theta):    #get the amplitude of the E field at the aperture plane
+    #Pk - intersection of first ray and array
+    #Pk1 - intersection of second ray and array
+    #Pk_ap - intersection of first ray and aperture
+    #Pk_ap1 - intersection of second ray and aperture
+
+    dLk = distance(Pk, Pk1)/2                               #ray tube width
+    dck_ap = distance(Pk_ap, Pk_ap1)/2                      #infinitesimal arc length of aperture
     return np.sqrt(dLk/(dck_ap*np.cos(theta))), dck_ap
 # =============================================================================
 
 def getAmplitude(rays, segments):
     row = []
-    Pk = [list(row) for i in range( 0, N)]
-    normals = []
-    Ak_ap = np.zeros(N-2)
-    theta_k = np.zeros(N)
-    dck = np.zeros(N-2)
-    for i in range(0, len(rays)):
+    Pk = [list(row) for i in range( 0, N)]                  #intersection points
+    #normals = []
+    Ak_ap = np.zeros(N-2)                                   #amplitude on aperture
+    theta_k = np.zeros(N)                                   #output angle in relation to aperture normal
+    dck = np.zeros(N-2)                                     #infinitesimal arc length of aperture    
+
+    for i in range(0, len(rays)):                           #get all intersection points first
         Pk[i] = rays[i].Pk
 
-    for i in range(0, len(rays)):
-        nk = [rays[i].normals[nSurfaces*2-2], rays[i].normals[nSurfaces*2-1]]
-        sk = rays[i].sk 
-        theta_k[i] = getAngleBtwVectors(nk, sk)
-        if i > 1:
-            Pstart1 = [Pk[i-2][0], Pk[i-2][1]]
-            Pstart2 = [Pk[i][0], Pk[i][1]]
-            Pap1 = [Pk[i-2][(nSurfaces)*2], Pk[i-2][(nSurfaces)*2+1]]
-            Pap2 = [Pk[i][(nSurfaces)*2], Pk[i][(nSurfaces)*2+1]]
+    #lukas - optimize by going from 2->len(rays), maybe write with k index to follow easier
+    for i in range(0, len(rays)):                                                   #for each ray
+        nk = [rays[i].normals[nSurfaces*2-2], rays[i].normals[nSurfaces*2-1]]       #normal to surface
+        sk = rays[i].sk                                                             #poynting vector
+        theta_k[i] = getAngleBtwVectors(nk, sk)                 
+        if i > 1:                                                                   #exclude first ray, code will handle ray i-1 for each loop
+            Pstart1 = [Pk[i-2][0], Pk[i-2][1]]                                      #intersection to the left of ray on array
+            Pstart2 = [Pk[i][0], Pk[i][1]]                                          #intersection to the right of ray on array   
+            Pap1 = [Pk[i-2][(nSurfaces)*2], Pk[i-2][(nSurfaces)*2+1]]               #intersection to the left of ray on aperture
+            Pap2 = [Pk[i][(nSurfaces)*2], Pk[i][(nSurfaces)*2+1]]                   #intersection to the left of ray of aperture
             Ak_ap[i-2], dck[i-2]  = calculateRayTubeAmpl(Pstart1, Pstart2, Pap1, Pap2, theta_k[i-2])
     return Ak_ap, dck
 
 
 def getTransmissionCoef(rays, segments):
-    ts_coeff = np.ones(N, dtype=np.complex_)
-    row = []   
-    Pk = []
-    intersections = np.zeros([2, ])
+    ts_coeff = np.ones(N, dtype=np.complex_)                                                    #transmission coefficients
+    #lukas - not necessary
+    #row = []   
+    #Pk = []
+    #intersections = np.zeros([2, ])
 
     for i in range(0, len(rays)):
-        idxs = rays[i].idxs
-        Pk = rays[i].Pk
-        idx = 0
-        intersections = np.zeros([int(len(Pk)/2)-1, 2])
-        thickness = []
+        #idxs = rays[i].idxs
+        Pk = rays[i].Pk                                                                         #intersection points of ray and segment, setup as [x1 y1 x2 y2 ...]                                               
+        idx = 0                                                                                 #intersection index
+        intersections = np.zeros([int(len(Pk)/2)-1, 2])                                         #intersections
+        thickness = []                                                                          #distance the ray travels between segments
         thickness_itu = []
         incident_angle = rays[i].incident_angle
-        idxs_int = rays[i].idxs
-        normals = np.zeros([len(intersections), 2])
+        #idxs_int = rays[i].idxs
+        normals = np.zeros([len(intersections), 2])                                             #normal where there is an intersection
         #orthogonals = np.zeros([len(intersections), 2])
-        orthogonal = [- rays[i].normals[1], rays[i].normals[0] ]
+        orthogonal = [- rays[i].normals[1], rays[i].normals[0] ]                                #orthogonal to normal of array, counterclockwise
         last_inter = []
 
-
+        #Create matrices for intersection points and corresponding surface normals
         # I could put those together and optimize it
-        for j in range(0, len(Pk)-1): #-1 because we want to skip the last surface (aperture)
-            if j % 2 == 0 and j > 0:
-                intersections[idx] = [Pk[j], Pk[j+1]]
+        for j in range(0, len(Pk)-1):                                                           #-1 because we want to skip the last surface (aperture)
+            if j % 2 == 0 and j > 0:                                                            #mod2 to get every intersection and j>0 to exclude array intersection
+                intersections[idx] = [Pk[j], Pk[j+1]]                                           #intersection points
                 idx += 1
-            if j % 2 == 0 and j < len(rays[i].normals-1):    
-                normals[idx] = [rays[i].normals[j], rays[i].normals[j+1]]
-                
-        for j in range(0, len(intersections)-1):
+            if j % 2 == 0 and j < len(rays[i].normals-1):                                       #mod2 to get every intersection and j>0 to exclude array intersection
+                normals[idx] = [rays[i].normals[j], rays[i].normals[j+1]]                       #normals corresponding to 
 
-
-            if j == 0:
-                idx_segment = int(idxs_int[j])
-                v_normal = normals[j]
-                origin = intersections[j]
-                [x_0_n, y_0_n] = intersections[j]
-                x_end_n = x_0_n + 1*v_normal[0]
-                y_end_n = y_0_n + 1*v_normal[1]
-                last_inter =  [x_0_n, y_0_n] 
+        #For the ITU model the normal for the surface is extended to intersect 
+        #with offseted plane to calculated travelled distance
+        for j in range(0, len(intersections)-1):                                                    #for each intersection excluding aperture plane
+            if j == 0:                                                                              #intersection with array, start values
+                #idx_segment = int(idxs_int[j])
+                v_normal = normals[j]                                                               #start normal
+                #origin = intersections[j]  
+                [x_0_n, y_0_n] = intersections[j]                                                   #start position
+                x_end_n = x_0_n + 1*v_normal[0]                                                     #end position of ray
+                y_end_n = y_0_n + 1*v_normal[1]                                                     #^
+                last_inter =  [x_0_n, y_0_n]                                                        #last intersection
                 #plt.plot(x_0_n, y_0_n, 'bx')
                 #plt.plot(x_end_n, y_end_n, 'gx')
                 #plt.quiver(*origin, *v_normal, color='red', angles='xy', scale_units='xy', scale=1)
 
             elif j > 0:
-                thickness = np.append(thickness, distance(intersections[j], intersections[j-1]))
+                thickness = np.append(thickness, distance(intersections[j], intersections[j-1]))    #distance between intersections    
 
 
-                [x_0_orth, y_0_orth] = intersections[j]
-                origin = intersections[j]
+                [x_0_orth, y_0_orth] = intersections[j]                                             #orhtogonal vector start
+                #origin = intersections[j]
                 #plt.quiver(*origin, *orthogonal, color='green', angles='xy', scale_units='xy', scale=1)
-                x_end_orth = x_0_orth + 1*orthogonal[0]
-                y_end_orth = y_0_orth + 1*orthogonal[1]
+                x_end_orth = x_0_orth + 1*orthogonal[0]                                             #orthogonal vector end
+                y_end_orth = y_0_orth + 1*orthogonal[1]                                             #^
                 #plt.plot(x_0_orth, y_0_orth, 'o', color = 'pink')
                 #plt.plot(x_end_orth, y_end_orth, 'go')
 
                 aux = intersect_line_seg([x_0_n, y_0_n], [x_end_n, y_end_n], [x_0_orth, y_0_orth], [x_end_orth, y_end_orth])
-                if aux == None:
-                    orthogonal = [ -x for x in orthogonal]
-                    x_end_orth = x_0_orth + 1*orthogonal[0]
-                    y_end_orth = y_0_orth + 1*orthogonal[1] 
-                    [x_int, y_int] = intersect_line_seg([x_0_n, y_0_n], [x_end_n, y_end_n], [x_0_orth, y_0_orth], [x_end_orth, y_end_orth])
+                if aux == None:                                                                     #test if ray intersect with orthogonal vector
+                    orthogonal = [ -x for x in orthogonal]                                          #rotate orthogonal vector 180 degress
+                    x_end_orth = x_0_orth + 1*orthogonal[0]                                         #new orthogonal vector end test
+                    y_end_orth = y_0_orth + 1*orthogonal[1]                                         #^
+                    [x_int, y_int] = intersect_line_seg([x_0_n, y_0_n], [x_end_n, y_end_n], [x_0_orth, y_0_orth], [x_end_orth, y_end_orth]) #test flipped vector for intersection
                    # plt.quiver(*origin, *orthogonal, color='pink', angles='xy', scale_units='xy', scale=1)
                     #print('No intersection')
                 else: 
@@ -203,9 +215,9 @@ def getTransmissionCoef(rays, segments):
 
 
 
-
+        #Choose transmission/reflection method
         if I.ITU_model == 1:
-            layerThickness =  np.pad(thickness_itu, (1, 1), 'constant', constant_values=(0,0))
+            layerThickness =  np.pad(thickness_itu, (1, 1), 'constant', constant_values=(0,0)) #add thickness of air
             if I.nSurfaces == 4:
                 complexPermittivity = [1, np.sqrt(er), er, np.sqrt(er), 1]
             elif I.nSurfaces == 2:

@@ -11,41 +11,41 @@ k1 = -1.2
 k2 = -3.9
 h1 = 0.325
 h2 = 0.345
-D = 1.500
-p = np.linspace(-D, D, 10000) #number of points, represents the x-axis
-e0 = 8.8541878128e-12
-f = 13e9
-c0 = 299792458
-wv = c0/f # wavelength in mm (defined in the paper)
-k0 = 2*np.pi/wv #propagation constant in free space
-L = 3*0.325 #length of the Array (hmax = L/3) (defined in the paper)
-m_max = 10000000 #max slope possible
-const=40
-long = 0.300 #how long is the final point of the rays
+D = 1.500                                           # Solution space for the x-axis
+p = np.linspace(-D, D, 10000)                       # number of points, represents the x-axis
+e0 = 8.8541878128e-12                               #vacuum permitivitty
+f = 13e9                                            #frequency            
+c0 = 299792458                                      #vacuum light speed
+wv = c0/f                                           # wavelength in mm (defined in the paper)
+k0 = 2*np.pi/wv                                     #propagation constant in free space
+L = 3*0.325                                         #length of the Array (hmax = L/3) (defined in the paper)
+m_max = 10000000                                    #max slope possible
+const=40                                            #constant to make even phase front at aperture plane
+long = 0.300                                        #how long is the final point of the rays
 
-N = 100
-Array = np.linspace (-L/2, L/2, N) #the starting points of the rays over the array
-output_angle = 0 #in degrees
-spacing = 10
+N = 100                                             #number of rays
+Array = np.linspace (-L/2, L/2, N)                  #the starting points of the rays over the array
+output_angle = 50                                   #in degrees from z-axis
+spacing = 10                                        #ray spacing on the x-axis    
 MAX_ITERATIONS = 5
 
-#type_surface = 'flat'
-type_surface = 'conic'
+type_surface = 'flat'                               #Surface type
+#type_surface = 'conic'
 #type_surface = 'oblique'
 
 ITU_model = 1
 matchingLayers = False
 if matchingLayers:
-    nSurfaces = 4
+    nSurfaces = 4 
 else:
-    nSurfaces = 2    
+    nSurfaces = 2 
 
 er = 2.5
 mur = 1
 
-losses = 0
-reflections = 1
-tan_delta = 0.00066 if losses == 1 else 0
+losses = 0                                          #losses true or false
+reflections = 1                                     #reflections true or false
+tan_delta = 0.00066 if losses == 1 else 0           #loss coefficient in dielectric
 
 
 # if reflections == 0:
@@ -117,6 +117,7 @@ else:
     MLayer1 = matchingLayer1(p)
     MLayer2 = matchingLayer2(p)
 
+# Find where the surface crosses z=0 and set the rest to 0
 surface1 = np.where(surface1>0, surface1, 0.)
 MLayer1 = np.where(MLayer1>0, MLayer1, 0.) 
 surface2 = np.where(surface2>0, surface2, 0.)

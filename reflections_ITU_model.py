@@ -2,10 +2,16 @@ import numpy as np
 
 
 def getReflectionCoefficients_multiLayer(k_0, layerThickness, polaritzation, complexPermittivity, incidentAngle):
-    nLayers = len(layerThickness)
-    eta_n = complexPermittivity
-    k_n = k_0*np.sqrt(eta_n)
-    incidenceAngle_n = np.arcsin(np.sin(incidentAngle)/np.sqrt(eta_n))
+    #k0 - free space wave number
+    #layerthickness - thickness of each "slab"
+    #polarization - TE or TM
+    #complexPermittivity - vector of permittiviteies corresponding to each layer
+    #incidentAngle - incident angle from air region
+
+    nLayers = len(layerThickness)                                                           #number of layers
+    eta_n = complexPermittivity                                                             #assuming permeability mu_0
+    k_n = k_0*np.sqrt(eta_n)                                                                #wave length in material
+    incidenceAngle_n = np.arcsin(np.sin(incidentAngle)/np.sqrt(eta_n))                      #
     N = nLayers
 
     # % Initialize
