@@ -76,23 +76,12 @@ else:
     segments = np.append(segments, rt_line.discretize_function(s1, 30, n1, n2, False, False))
     segments = np.append(segments, rt_line.discretize_function(s2, 30, n2, n1, False, False))
 
-plt.figure()
-for i in range(len(segments)):
-    plt.plot([segments[i].A[0], segments[i].B[0]], [segments[i].A[1], segments[i].B[1]], color = 'red', linewidth = 0.5)
-plt.ylim([0.1,0.5])
-
-plt.show()
+#plt.figure()
+#for i in range(len(segments)):
+   # plt.plot([segments[i].A[0], segments[i].B[0]], [segments[i].A[1], segments[i].B[1]], color = 'red', linewidth = 0.5)
+#plt.ylim([0.1,0.5])
+#plt.show()
 ################# end create segments #######################
-
-
-#Lukas testing surface arrays
-######
-
-plt.figure()
-plt.plot(p,surface1_arr)
-plt.plot(p,aperture_plane(p))
-
-#######
 
 
 # if 0:
@@ -109,32 +98,29 @@ f = interp1d(angle_position, angle_in, kind='cubic')                            
 angles_for_direct = f(Array)                                                                #Find angles corresponding to defined points on x-axis
 
 
-
+plot = 1    
 ################################# DIRECT ##########################################3
-#lukas - not used
-#angle_in = np.ones(N)*np.deg2rad(I.output_angle)
-
 #Create plot for direct raytracing
-fig = plt.figure()
-fig.set_dpi(300)
-ax = fig.add_subplot(111)
-csfont = {'fontname':'Times New Roman'}
-plt.ylim([0,0.750])
-plt.xlim([-0.8, 0.8])
-plt.ylabel('z (mm)')
-plt.xlabel('x (mm)')
-plt.title('Direct Ray Tracing', **csfont)
-plt.plot(p, surface1_arr, color='grey', linewidth = 0.5)
-plt.plot(p, surface2_arr, color='grey', linewidth = 0.5)
-plt.plot(p, MLayer1_arr, color = 'chocolate', linewidth = 0.1)
-plt.plot(p, MLayer2_arr, color = 'chocolate', linewidth = 0.1)
-ax.fill_between(p, MLayer1_arr, surface1_arr, color = 'orange')
-ax.fill_between(p, MLayer2_arr, surface2_arr, color = 'orange')
-ax.set_aspect(1, adjustable='box')
-for i in range(0, len(segments)):
-    plt.plot([segments[i].A[0], segments[i].B[0]], [segments[i].A[1], segments[i].B[1]], color = 'red', linewidth = 0.5)
-
-
+if plot:
+    fig = plt.figure()
+    fig.set_dpi(300)
+    ax = fig.add_subplot(111)
+    csfont = {'fontname':'Times New Roman'}
+    plt.ylim([0,0.750])
+    plt.xlim([-0.8, 0.8])
+    plt.ylabel('z (mm)')
+    plt.xlabel('x (mm)')
+    plt.title('Direct Ray Tracing', **csfont)
+    plt.plot(p, surface1_arr, color='grey', linewidth = 0.5)
+    plt.plot(p, surface2_arr, color='grey', linewidth = 0.5)
+    if I.nSurfaces == 4:
+        plt.plot(p, MLayer1_arr, color = 'chocolate', linewidth = 0.1)
+        plt.plot(p, MLayer2_arr, color = 'chocolate', linewidth = 0.1)
+        ax.fill_between(p, MLayer1_arr, surface1_arr, color = 'orange')
+        ax.fill_between(p, MLayer2_arr, surface2_arr, color = 'orange')
+    ax.set_aspect(1, adjustable='box')
+    for i in range(0, len(segments)):
+        plt.plot([segments[i].A[0], segments[i].B[0]], [segments[i].A[1], segments[i].B[1]], color = 'red', linewidth = 0.5)
 
 
 
@@ -147,11 +133,12 @@ x_ap = np.zeros(N)                                  #x value on aperture
 y_ap = np.zeros(N)                                  #y value on aperture    
 
 rays = rt_line.directRayTracing_segments(angles_for_direct, segments)
+
 for i in range(0, len(rays)):
     Pk_np = rays[i].Pk
     for j in range(0, len(Pk_np)-3):
         if j % 2 == 0:                              #to get each point, Pk_np = [x1 y1 x2 y2...]
-            plt.plot([Pk_np[j], Pk_np[j+2]], [Pk_np[j+1], Pk_np[j+3]], color='black', linewidth = 1)
+            if plot: plt.plot([Pk_np[j], Pk_np[j+2]], [Pk_np[j+1], Pk_np[j+3]], color='black', linewidth = 1)
             x_ap[i] = Pk_np[j]
             y_ap[i] = Pk_np[j+1]    
 
@@ -163,32 +150,29 @@ for i in range(0, len(rays)):
 path_length = np.zeros(N, dtype=np.complex_)                        #length that ray has travelled
 nk = np.zeros([N,2])                                                #normal of the aperture
 sk = np.zeros([N,2])                                                #pointying vector
-ts_coeff = np.ones(N, dtype=np.complex_)                            #reflection coefficient normal to plane of incident
+ts_cascade = np.ones(N, dtype=np.complex_)                            #reflection coefficient normal to plane of incident
+ts_aggr = np.ones(N, dtype=np.complex_)
 
 #all these functions can be optimized
 path_length = rtube.getPathLength(rays, segments)                   #length that ray have travelled, including material parameters
 nk, sk = rtube.getLastNormal(rays)                                  #get normal and poynting vector at aperture
-ts_coeff = rtube.getTransmissionCoef(rays, segments)                #transmission coefficients
-Ak_ap, dck = rtube.getAmplitude(rays, segments)                     #electric field amplitude over aperture and infinitesimal arc length over aperture
+ts_cascade, ts_aggr = rtube.getTransmissionCoef(rays, segments)                #transmission coefficients
+Ak_ap, dck = rtube.getAmplitude(rays, segments, angles_for_direct)                     #electric field amplitude over aperture and infinitesimal arc length over aperture
 
-plt.grid()
-#plt.show()
-
-i=1
-print(np.shape(rays[i].Pk))
 
 ############################## RADIATION PATTERN - KIRCHOFF ##########################################3
-Etotal, theta = rp.getRadiationPattern(Ak_ap, path_length[1:N-1], nk[1:N-1], sk[1:N-1], dck, x_ap[1:N-1], y_ap[1:N-1], ts_coeff[1:N-1]) #does not include the outer rays
+Etotal, theta, Ap_field_casc, dck_casc = rp.getRadiationPattern(Ak_ap, path_length[1:N-1], nk[1:N-1], sk[1:N-1], dck, x_ap[1:N-1], y_ap[1:N-1], ts_cascade[1:N-1]) #does not include the outer rays
 Etotal_dB = 20*np.log10(abs(Etotal))
-#print(max(Etotal_dB))
+print('Cascade: '+ str(max(Etotal_dB)))
 
 #plot the radiation pattern
 fig2 = plt.figure()
 fig2.set_dpi(400)
 ax2 = fig2.add_subplot(111)
 ax2.set_aspect(1.5, adjustable='box')
-plt.plot(-theta*180/np.pi+90,  20*np.log10(abs(Etotal)/max(abs(Etotal))), linewidth=1, color = 'red')
+plt.plot(-theta*180/np.pi+90,  20*np.log10(abs(Etotal)/max(abs(Etotal))), linewidth=1, color = 'blue')
 plt.ylabel('Normalized Pattern, dB')
+plt.title('Cascade')
 plt.xlim([-70, 70])
 plt.ylim([-35, 0])
 plt.xlabel('$\u03B8 $, degrees')
@@ -206,7 +190,62 @@ df.to_excel('RT_radpat_' + str(I.output_angle) + 'deg.xlsx', sheet_name='Sheet1'
 
 
 
-    
+Etotal, theta, Ap_field_aggr, dck_agg = rp.getRadiationPattern(Ak_ap, path_length[1:N-1], nk[1:N-1], sk[1:N-1], dck, x_ap[1:N-1], y_ap[1:N-1], ts_aggr[1:N-1]) #does not include the outer rays
+Etotal_dB = 20*np.log10(abs(Etotal))
+print('Aggregate: '+ str(max(Etotal_dB)))
+
+# #plot the radiation pattern
+fig2 = plt.figure()
+fig2.set_dpi(400)
+ax2 = fig2.add_subplot(111)
+ax2.set_aspect(1.5, adjustable='box')
+plt.plot(-theta*180/np.pi+90,  20*np.log10(abs(Etotal)/max(abs(Etotal))), linewidth=1, color = 'red')
+plt.ylabel('Normalized Pattern, dB')
+plt.title('Aggregate')
+plt.xlim([-70, 70])
+plt.ylim([-35, 0])
+plt.xlabel('$\u03B8 $, degrees')
+plt.xticks(range(-90, 91, 10))
+plt.yticks(range(-35, 10, 5))
+plt.rcParams["font.family"] = "Times New Roman" 
+ax2.xaxis.label.set_fontsize(10)
+ax2.yaxis.label.set_fontsize(10)
+plt.grid()
+plt.show()
+
+#saving the radiation pattern results in an excel
+df = pd.DataFrame(Etotal_dB, theta)
+df.to_excel('RT_radpat_aggr' + str(I.output_angle) + 'deg.xlsx', sheet_name='Sheet1')
+
+
+# plt.figure()
+# plt.title('Magnitude')
+# # plt.plot(np.abs(ts_cascade), color = 'black')
+# # plt.plot(np.abs(ts_aggr), color = 'red')
+
+# plt.plot(np.abs(Ap_field_casc),color = 'black')
+# plt.plot(np.abs(Ap_field_aggr),color = 'red')
+# plt.ylim([0.0, 0.5])
+# plt.legend(('Cascade', 'Aggregate'))
+# plt.grid()
+# plt.show()
+
+
+# plt.figure()
+# plt.title('Phase rad')
+# # plt.plot(np.angle(ts_cascade), color = 'black')
+# # plt.plot(np.angle(ts_aggr), color = 'red')
+
+# plt.plot(np.angle(Ap_field_casc),color = 'black')
+# plt.plot(np.angle(Ap_field_aggr),color = 'red')
+# plt.legend(('Cascade', 'Aggregate'))
+# plt.grid()
+# plt.show()    
+
+# plt.figure()
+# plt.plot(dck_casc)
+# plt.plot(dck_agg)
+# plt.show()
     
     
     

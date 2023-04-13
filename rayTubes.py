@@ -88,8 +88,8 @@ def getPathLength(rays, segments):
                 path_length[i] = path_length[i] + ray_length[j]*segments[idx].n1
 
     #save phase distribution on the array
-    #df = pd.DataFrame(phi_a, Array)
-    #df.to_excel('ph_distr_direct_' + str(I.output_angle) + 'deg.xlsx', sheet_name='Sheet1')            
+    df = pd.DataFrame(phi_a, Array)
+    df.to_excel('ph_distr_direct_' + str(I.output_angle) + 'deg.xlsx', sheet_name='Sheet1')            
     return path_length
 
 def getLastNormal(rays):
@@ -103,7 +103,7 @@ def getLastNormal(rays):
 
 
 #=============================================================================
-def calculateRayTubeAmpl(Pk, Pk1, Pk_ap, Pk_ap1, theta):    #get the amplitude of the E field at the aperture plane
+def calculateRayTubeAmpl(Pk, Pk1, Pk_ap, Pk_ap1, theta, theta_in):    #get the amplitude of the E field at the aperture plane
     #Pk - intersection of first ray and array
     #Pk1 - intersection of second ray and array
     #Pk_ap - intersection of first ray and aperture
@@ -111,15 +111,16 @@ def calculateRayTubeAmpl(Pk, Pk1, Pk_ap, Pk_ap1, theta):    #get the amplitude o
 
     dLk = distance(Pk, Pk1)/2                               #ray tube width
     dck_ap = distance(Pk_ap, Pk_ap1)/2                      #infinitesimal arc length of aperture
-    return np.sqrt(dLk/(dck_ap*np.cos(theta))), dck_ap
+    return np.sqrt(dLk*np.cos(theta_in)/(dck_ap*np.cos(theta))), dck_ap
+    #return np.sqrt(dLk/(dck_ap*np.cos(theta))), dck_ap
 # =============================================================================
 
-def getAmplitude(rays, segments):
+def getAmplitude(rays, segments, theta_i):
     row = []
     Pk = [list(row) for i in range( 0, N)]                  #intersection points
     #normals = []
     Ak_ap = np.zeros(N-2)                                   #amplitude on aperture
-    theta_k = np.zeros(N)                                   #output angle in relation to aperture normal
+    theta_k = np.zeros(N)
     dck = np.zeros(N-2)                                     #infinitesimal arc length of aperture    
 
     for i in range(0, len(rays)):                           #get all intersection points first
@@ -129,22 +130,22 @@ def getAmplitude(rays, segments):
     for i in range(0, len(rays)):                                                   #for each ray
         nk = [rays[i].normals[nSurfaces*2-2], rays[i].normals[nSurfaces*2-1]]       #normal to surface
         sk = rays[i].sk                                                             #poynting vector
-        theta_k[i] = getAngleBtwVectors(nk, sk)                 
+        theta_k[i] = getAngleBtwVectors(nk, sk)
+        #theta_i[i] = np.rad2deg(rays[i].incident_angle[0]  )
+        #print(theta_i[i])             
         if i > 1:                                                                   #exclude first ray, code will handle ray i-1 for each loop
             Pstart1 = [Pk[i-2][0], Pk[i-2][1]]                                      #intersection to the left of ray on array
             Pstart2 = [Pk[i][0], Pk[i][1]]                                          #intersection to the right of ray on array   
             Pap1 = [Pk[i-2][(nSurfaces)*2], Pk[i-2][(nSurfaces)*2+1]]               #intersection to the left of ray on aperture
             Pap2 = [Pk[i][(nSurfaces)*2], Pk[i][(nSurfaces)*2+1]]                   #intersection to the left of ray of aperture
-            Ak_ap[i-2], dck[i-2]  = calculateRayTubeAmpl(Pstart1, Pstart2, Pap1, Pap2, theta_k[i-2])
+            Ak_ap[i-2], dck[i-2]  = calculateRayTubeAmpl(Pstart1, Pstart2, Pap1, Pap2, theta_k[i-1], theta_i[i-1])
     return Ak_ap, dck
 
 
 def getTransmissionCoef(rays, segments):
     ts_coeff = np.ones(N, dtype=np.complex_)                                                    #transmission coefficients
-    #lukas - not necessary
-    #row = []   
-    #Pk = []
-    #intersections = np.zeros([2, ])
+    ts_coeff_aggregate = np.ones(N, dtype=np.complex_)
+
 
     for i in range(0, len(rays)):
         #idxs = rays[i].idxs
@@ -152,7 +153,8 @@ def getTransmissionCoef(rays, segments):
         idx = 0                                                                                 #intersection index
         intersections = np.zeros([int(len(Pk)/2)-1, 2])                                         #intersections
         thickness = []                                                                          #distance the ray travels between segments
-        thickness_itu = []
+        thickness_agrr = []
+        delta = []
         incident_angle = rays[i].incident_angle
         #idxs_int = rays[i].idxs
         normals = np.zeros([len(intersections), 2])                                             #normal where there is an intersection
@@ -193,7 +195,7 @@ def getTransmissionCoef(rays, segments):
                 #plt.quiver(*origin, *orthogonal, color='green', angles='xy', scale_units='xy', scale=1)
                 x_end_orth = x_0_orth + 1*orthogonal[0]                                             #orthogonal vector end
                 y_end_orth = y_0_orth + 1*orthogonal[1]                                             #^
-                #plt.plot(x_0_orth, y_0_orth, 'o', color = 'pink')
+                plt.plot(x_0_orth, y_0_orth, 'o', color = 'pink')
                 #plt.plot(x_end_orth, y_end_orth, 'go')
 
                 aux = intersect_line_seg([x_0_n, y_0_n], [x_end_n, y_end_n], [x_0_orth, y_0_orth], [x_end_orth, y_end_orth])
@@ -208,23 +210,24 @@ def getTransmissionCoef(rays, segments):
                     [x_int, y_int] = aux
                 
                 #print(last_inter, [x_int, y_int])
-                #plt.plot(x_int, y_int, 'o', color = 'black')
+                #
+                plt.plot(x_int, y_int, 'o', color = 'black')
 
-                thickness_itu = np.append(thickness_itu, distance([x_int, y_int], last_inter))
+                thickness_agrr = np.append(thickness_agrr, distance([x_int, y_int], last_inter))
+                delta = np.append(delta, distance([x_int, y_int], [x_0_orth, y_0_orth]))
                 last_inter = [x_int, y_int]    
 
 
+        if I.nSurfaces == 4:
+            complexPermittivity = [1, np.sqrt(er), er, np.sqrt(er), 1]
+        elif I.nSurfaces == 2:
+            complexPermittivity = [1, er, 1]
 
         #Choose transmission/reflection method
-        if I.ITU_model == 1:
-            layerThickness =  np.pad(thickness_itu, (1, 1), 'constant', constant_values=(0,0)) #add thickness of air
-            if I.nSurfaces == 4:
-                complexPermittivity = [1, np.sqrt(er), er, np.sqrt(er), 1]
-            elif I.nSurfaces == 2:
-                complexPermittivity = [1, er, 1]
-            else:
-                print_error('Unsupported number of layers!')
-            ts_coeff[i] = itu.getReflectionCoefficients_multiLayer(k0, layerThickness, 'TE', complexPermittivity, incident_angle[0])
-        else:
-            ts_coeff[i] = multilayer.getReflectionCoefficients_ML(incident_angle, thickness, er, I.f)
-    return ts_coeff      
+        #if I.ITU_model == 1:
+        #    layerThickness =  np.pad(thickness_agrr, (1, 1), 'constant', constant_values=(0,0)) #add thickness of air
+        #    ts_coeff[i] = itu.getReflectionCoefficients_multiLayer(k0, layerThickness, 'TE', complexPermittivity, incident_angle[0])
+        if reflections == 1:
+            ts_coeff[i] = multilayer.getReflectionCoefficients_cascade(incident_angle, thickness, er, I.f) #thickness_agg, 3rd arg
+            ts_coeff_aggregate[i] = multilayer.getReflectionCoefficients_agg(incident_angle, thickness_agrr, complexPermittivity, I.f, delta)
+    return ts_coeff, ts_coeff_aggregate     

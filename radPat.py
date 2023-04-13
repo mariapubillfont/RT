@@ -84,8 +84,9 @@ def getRadiationPattern(Ak_ap, path_length, nk, sk, dCk, xap, yap, ts):
         if I.reflections == 1:
             Ez[:] +=  Ak_ap[ii] * Fcos[:] * np.exp(-1j*k0*(path_length[ii]+dR[:])) / (dR[:])*(Fk + Gk[:])*dCk[ii]*(ts[ii])
       
-            Ap_field[ii] = Ak_ap[ii]*dCk[ii]*np.exp(-1j*k0*(path_length[ii]))*abs(ts[ii])
+            Ap_field[ii] = Ak_ap[ii]*dCk[ii]*np.exp(-1j*k0*(path_length[ii]))*(ts[ii])
         else:
             Ez[:] +=  Ak_ap[ii] * Fcos[:] * np.exp(-1j*k0*(path_length[ii]+dR[:])) / (dR[:])*(Fk + Gk[:])*dCk[ii]     
+            Ap_field[ii] = Ak_ap[ii]*dCk[ii]*np.exp(-1j*k0*(path_length[ii]))
 
-    return Ez, theta
+    return Ez, theta, Ap_field, dCk

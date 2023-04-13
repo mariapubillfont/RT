@@ -2,6 +2,9 @@
 """
 Created on Fri May 13 13:03:37 2022
 @author: maria
+input file by Marietaaaa :)
+
+
 """
 import numpy as np
 # parameters to define the conic shapes of the dome (all parameters defined in the paper)
@@ -11,6 +14,7 @@ k1 = -1.2
 k2 = -3.9
 h1 = 0.325
 h2 = 0.345
+#h2 = 0.425
 D = 1.500                                           # Solution space for the x-axis
 p = np.linspace(-D, D, 10000)                       # number of points, represents the x-axis
 e0 = 8.8541878128e-12                               #vacuum permitivitty
@@ -25,26 +29,28 @@ long = 0.300                                        #how long is the final point
 
 N = 100                                             #number of rays
 Array = np.linspace (-L/2, L/2, N)                  #the starting points of the rays over the array
-output_angle = 50                                   #in degrees from z-axis
+output_angle = 0                                   #in degrees from z-axis
 spacing = 10                                        #ray spacing on the x-axis    
 MAX_ITERATIONS = 5
 
-type_surface = 'flat'                               #Surface type
-#type_surface = 'conic'
+#type_surface = 'flat'                               #Surface type#
+type_surface = 'conic'
 #type_surface = 'oblique'
 
-ITU_model = 1
-matchingLayers = False
+ITU_model = 0
+cascade = 1
+matchingLayers = True
 if matchingLayers:
     nSurfaces = 4 
 else:
     nSurfaces = 2 
 
 er = 2.5
+
 mur = 1
 
-losses = 0                                          #losses true or false
-reflections = 1                                     #reflections true or false
+losses = 0                                         #losses true or false
+reflections = 1                       #reflections true or false
 tan_delta = 0.00066 if losses == 1 else 0           #loss coefficient in dielectric
 
 
@@ -73,7 +79,7 @@ m_line2 = (line2_pointB[1] - line2_pointA[1])/(line2_pointB[0] - line2_pointA[0]
 
 theta_out_x = np.deg2rad(90-output_angle)
 theta_i_y = np.ones(N)*output_angle
-y_r_max = np.sin(theta_out_x)*h2*3
+y_r_max = np.sin(theta_out_x)*h2*4
 x_r_max = np.cos(theta_out_x)*D*np.sign(output_angle)
 m3 = np.tan(theta_out_x)
 if m3 > m_max: m3=m_max

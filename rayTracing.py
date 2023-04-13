@@ -296,7 +296,7 @@ def ray(segments, rayi_A, rayi_B, Pki, direction, ski, ray_lengthi, all_normalsi
     # Find intersection of ray and segment
     aux = get_intersection(segments, rayi_A, rayi_B, direction)
     if aux == None: 
-        print("No intersection found")
+        #print("No intersection found")
         return None
 
     [x_int, y_int] = aux[0]                                                         #Intersection points
@@ -319,7 +319,7 @@ def ray(segments, rayi_A, rayi_B, Pki, direction, ski, ray_lengthi, all_normalsi
     else:                                                                           #reverse direction, normal and ray opposite directions    
         theta_t = np.pi - snell(theta_i, segments[idx_int].n2, segments[idx_int].n1)
         if (abs(theta_t == np.pi) and segments[idx_int].n2 != 1 and I.type_surface != 'flat'): #critical angle, when the surface is not flat
-            print("critical angle")
+            #print("critical angle")
             return None  
     u = np.cos(theta_t)*Normal[0] - np.sin(theta_t)*Normal[1]                                          
     v = np.sin(theta_t)*Normal[0] + np.cos(theta_t)*Normal[1]
@@ -332,7 +332,6 @@ def ray(segments, rayi_A, rayi_B, Pki, direction, ski, ray_lengthi, all_normalsi
         ski = Ray_t
         return Pki, ski, ray_lengthi, all_normalsi, incident_anglei, idx_segmentsi
     else:
-        #lukas - not used
         #nki = Normal
         incident_anglei = np.append(incident_anglei, theta_i)
         return ray(segments, [x_int, y_int], [x_end, y_end], Pki, direction, ski, ray_lengthi, all_normalsi, incident_anglei, idx_segmentsi)
@@ -377,8 +376,6 @@ def reverseRayTracing_segments(theta_out_x, segments):
     #y is used instead of z
     theta_out_y = np.pi/2 - np.deg2rad(theta_out_x)                             #angle defined from z-axis
     [y_aperture, x_aperture] = getSurfacePoints(I.aperture_plane(p), p)         #calculate starting points for the rays on the aperture
-    #lukas-not used
-    #t = 1
     row = []
     Pk = [list(row) for i in range( 0, len(x_aperture))]                        #list of list to handle each rays intersection points
     angle_in = []
@@ -388,29 +385,30 @@ def reverseRayTracing_segments(theta_out_x, segments):
     all_normals = [list(row) for i in range( 0, len(x_aperture))]
     idx_segments = [list(row) for i in range( 0, len(x_aperture))]
     sk = np.zeros([len(x_aperture),2])
-    
+    plot = False
 
     # FOR PLOTTING PRUPOSES ONLY
-    fig = plt.figure(2)
-    fig.set_dpi(300)
-    ax = fig.add_subplot(111)
-    csfont = {'fontname':'Times New Roman'}
-    plt.ylim([0,0.750])
-    plt.xlim([-0.8, 0.8])
-    plt.ylabel('z (mm)', **csfont )
-    plt.xlabel('x (mm)', **csfont)
-    plt.rcParams['font.size'] = '12'
-    plt.rcParams["font.family"] = "Times New Roman"
-    plt.title('Reverse Ray Tracing', **csfont)
-    plt.plot(p, surface1_arr, color='grey', linewidth = 0.5)
-    plt.plot(p, surface2_arr, color='grey', linewidth = 0.5)
-    plt.plot(p, MLayer1_arr, color = 'chocolate', linewidth = 0.1)
-    plt.plot(p, MLayer2_arr, color = 'chocolate', linewidth = 0.1)
-    ax.fill_between(p, MLayer1_arr, surface1_arr, color = 'orange')
-    ax.fill_between(p, MLayer2_arr, surface2_arr, color = 'orange')
-    ax.set_aspect(1, adjustable='box')
-    for i in range(0, len(segments)):
-        plt.plot([segments[i].A[0], segments[i].B[0]], [segments[i].A[1], segments[i].B[1]], color = 'red', linewidth = 0.5)
+    if plot:
+        fig = plt.figure(2)
+        fig.set_dpi(300)
+        ax = fig.add_subplot(111)
+        csfont = {'fontname':'Times New Roman'}
+        plt.ylim([0,0.750])
+        plt.xlim([-0.8, 0.8])
+        plt.ylabel('z (mm)', **csfont )
+        plt.xlabel('x (mm)', **csfont)
+        plt.rcParams['font.size'] = '12'
+        plt.rcParams["font.family"] = "Times New Roman"
+        plt.title('Reverse Ray Tracing', **csfont)
+        plt.plot(p, surface1_arr, color='grey', linewidth = 0.5)
+        plt.plot(p, surface2_arr, color='grey', linewidth = 0.5)
+        plt.plot(p, MLayer1_arr, color = 'chocolate', linewidth = 0.1)
+        plt.plot(p, MLayer2_arr, color = 'chocolate', linewidth = 0.1)
+        ax.fill_between(p, MLayer1_arr, surface1_arr, color = 'orange')
+        ax.fill_between(p, MLayer2_arr, surface2_arr, color = 'orange')
+        ax.set_aspect(1, adjustable='box')
+        for i in range(0, len(segments)):
+            plt.plot([segments[i].A[0], segments[i].B[0]], [segments[i].A[1], segments[i].B[1]], color = 'red', linewidth = 0.5)
 
     for i in range(0, len(x_aperture)):         #For each ray
         xA = x_aperture[i]                      #x starting point for ray 
@@ -435,11 +433,12 @@ def reverseRayTracing_segments(theta_out_x, segments):
                 angle_in = np.append(angle_in, getAngleBtwVectors(lastRay, [0,1]))          #angle between array normal and ray
                 angle_position = np.append(angle_position, x0)                              #where ray hits array
                 Pk_np = np.array(Pk[i])
-                for m in range(0,int(len(Pk_np)/2) - 1):
-                    plt.plot([Pk_np[m*2], Pk_np[m*2+2]], [Pk_np[m*2+1], Pk_np[m*2+3]], color='brown', linewidth = 1)
-    
-    plt.grid()
-    plt.show()
+                if plot:
+                    for m in range(0,int(len(Pk_np)/2) - 1):
+                       plt.plot([Pk_np[m*2], Pk_np[m*2+2]], [Pk_np[m*2+1], Pk_np[m*2+3]], color='brown', linewidth = 1)
+    if plot:
+        plt.grid()
+        plt.show()
     return angle_in, angle_position
 #=============================================================================  
 
