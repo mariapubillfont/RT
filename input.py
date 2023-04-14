@@ -29,28 +29,30 @@ long = 0.300                                        #how long is the final point
 
 N = 100                                             #number of rays
 Array = np.linspace (-L/2, L/2, N)                  #the starting points of the rays over the array
-output_angle = 0                                   #in degrees from z-axis
+output_angle = 35 
+tilted_angle = 20                                #in degrees from z-axis
 spacing = 10                                        #ray spacing on the x-axis    
 MAX_ITERATIONS = 5
 
 #type_surface = 'flat'                               #Surface type#
-type_surface = 'conic'
+#type_surface = 'conic'
 #type_surface = 'oblique'
+type_surface = 'tilted'
 
 ITU_model = 0
 cascade = 1
-matchingLayers = True
+amplitude_mod = 0
+matchingLayers = False
 if matchingLayers:
     nSurfaces = 4 
 else:
     nSurfaces = 2 
 
-er = 2.5
-
+er = 1
 mur = 1
 
 losses = 0                                         #losses true or false
-reflections = 1                       #reflections true or false
+reflections = 0                      #reflections true or false
 tan_delta = 0.00066 if losses == 1 else 0           #loss coefficient in dielectric
 
 
@@ -75,7 +77,11 @@ line2_pointB = [0.7277, 0.250]
 m_line1 = (line1_pointB[1] - line1_pointA[1])/(line1_pointB[0] - line1_pointA[0])
 m_line2 = (line2_pointB[1] - line2_pointA[1])/(line2_pointB[0] - line2_pointA[0])
 
-
+m_tilted = np.tan(np.deg2rad(90-tilted_angle))
+m_t_titled = -1./m_tilted
+x_tilted0 = D
+y_tilted0 = 0
+thickness_titled = 0.1/np.cos(np.deg2rad(tilted_angle))
 
 theta_out_x = np.deg2rad(90-output_angle)
 theta_i_y = np.ones(N)*output_angle
@@ -94,22 +100,28 @@ def s0(x):
 def s1(x):
     if type_surface == 'flat' : return h1
     elif type_surface == 'conic': return h1 + (c1*pow(x,2))/(1+np.sqrt(1-(1+k1)*pow(c1,2)*pow(x,2)))
-    elif type_surface == 'oblique' : return  m_line1*(x-line1_pointA[0]) + line1_pointA[1]
-
+    elif type_surface == 'oblique' : return  m_line1*(x-line1_pointA[0]) + line1_pointA[1]  
+    elif type_surface == 'tilted': return m_t_titled*(x-x_tilted0) + y_tilted0
+    
 def matchingLayer1(x):
     if type_surface == 'flat': return h1 - thickness_ML1
     elif type_surface == 'conic': return h1 - thickness_ML1 + (c1*pow(x,2))/(1+np.sqrt(1-(1+k1)*pow(c1,2)*pow(x,2)))
     elif type_surface == 'oblique' : return  m_line1*(x-line1_pointA[0]) + line1_pointA[1] - thickness_ML1/np.cos(np.arctan(m_line1))
+    elif type_surface == 'tilted': return m_t_titled*(x-x_tilted0) + y_tilted0 - thickness_ML1/np.cos(np.deg2rad(tilted_angle))
+
 
 def s2(x):
     if type_surface == 'flat' : return h2
     elif type_surface == 'conic': return h2  + (c2*pow(x,2))/(1+np.sqrt(1-(1+k2)*pow(c2,2)*pow(x,2)))
     elif type_surface == 'oblique' : return  m_line2*(x-line2_pointA[0]) + line2_pointA[1]
+    elif type_surface == 'tilted': return m_t_titled*(x-x_tilted0) + y_tilted0 + thickness_titled 
 
 def matchingLayer2(x):
     if type_surface == 'flat': return h2 + thickness_ML1
     elif type_surface == 'conic': return h2 + thickness_ML1 + (c2*pow(x,2))/(1+np.sqrt(1-(1+k2)*pow(c2,2)*pow(x,2)))
     elif type_surface == 'oblique' : return  m_line2*(x-line2_pointA[0]) + line2_pointA[1] + thickness_ML1/np.cos(np.arctan(m_line2))
+    elif type_surface == 'tilted': return m_t_titled*(x-x_tilted0) + y_tilted0 + thickness_titled + thickness_ML1/np.cos(np.deg2rad(tilted_angle))
+
 
 
 if type_surface == 'flat':

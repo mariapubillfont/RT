@@ -111,8 +111,10 @@ def calculateRayTubeAmpl(Pk, Pk1, Pk_ap, Pk_ap1, theta, theta_in):    #get the a
 
     dLk = distance(Pk, Pk1)/2                               #ray tube width
     dck_ap = distance(Pk_ap, Pk_ap1)/2                      #infinitesimal arc length of aperture
-    return np.sqrt(dLk*np.cos(theta_in)/(dck_ap*np.cos(theta))), dck_ap
-    #return np.sqrt(dLk/(dck_ap*np.cos(theta))), dck_ap
+    if I.amplitude_mod == 1:                                
+        return np.sqrt(dLk*np.cos(theta_in)/(dck_ap*np.cos(theta))), dck_ap
+    else:
+        return np.sqrt(dLk/(dck_ap*np.cos(theta))), dck_ap
 # =============================================================================
 
 def getAmplitude(rays, segments, theta_i):

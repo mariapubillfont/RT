@@ -8,6 +8,8 @@ from scipy.interpolate import interp1d
 import input as I
 import pandas as pd
 import rayTubes as rtube
+import warnings
+warnings.filterwarnings("ignore")
 
 ############### Input import ##################
 h2 = I.h2
@@ -76,11 +78,11 @@ else:
     segments = np.append(segments, rt_line.discretize_function(s1, 30, n1, n2, False, False))
     segments = np.append(segments, rt_line.discretize_function(s2, 30, n2, n1, False, False))
 
-#plt.figure()
-#for i in range(len(segments)):
-   # plt.plot([segments[i].A[0], segments[i].B[0]], [segments[i].A[1], segments[i].B[1]], color = 'red', linewidth = 0.5)
+plt.figure()
+for i in range(len(segments)):
+    plt.plot([segments[i].A[0], segments[i].B[0]], [segments[i].A[1], segments[i].B[1]], color = 'red', linewidth = 0.5)
 #plt.ylim([0.1,0.5])
-#plt.show()
+plt.show()
 ################# end create segments #######################
 
 
@@ -106,7 +108,7 @@ if plot:
     fig.set_dpi(300)
     ax = fig.add_subplot(111)
     csfont = {'fontname':'Times New Roman'}
-    plt.ylim([0,0.750])
+    plt.ylim([0,1])
     plt.xlim([-0.8, 0.8])
     plt.ylabel('z (mm)')
     plt.xlabel('x (mm)')
