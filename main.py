@@ -10,6 +10,9 @@ import pandas as pd
 import rayTubes as rtube
 import warnings
 warnings.filterwarnings("ignore")
+import time
+
+start = time.time()
 
 ############### Input import ##################
 h2 = I.h2
@@ -22,9 +25,6 @@ L = I.L
 Array = I.Array                             #x-values indicating where the array is
 D = I.D                                     #x-space
 
-#lukas -not used
-#m_max = I.m_max
-#k0 = I.k0
 
 s1 = I.s1
 s2 = I.s2
@@ -38,28 +38,6 @@ MLayer2_arr = I.MLayer2
 aperture_plane = I.aperture_plane
 ################ end input import###########
 
-# Don't have to be redefined, in rayTracing.py
-""""
-class LineSegment:
-    def __init__(self, normal0, normal1, n1, n2, A, B, u, t, isLast, isFirst):
-        self.normal0 = normal0 #normal of the starting point of the segment
-        self.normal1 = normal1 #normal of the end point of the segment        self.n1 = n1
-        self.n2 = n2
-        self.A = A
-        self.B = B
-        self.u = u
-        self.t = t
-        self.isLast = isLast
-        self.isFirst = isFirst
-
-class Ray:
-    def __init__(self, Pk, sk, normals, ray_lengths, idxs):
-        self.Pk = Pk #all the intersection points between the initial ray and the segments
-        self.sk = sk #value of the last pointing vector, direction of ray coming out from the dome
-        self.normals = normals #array with all the normals for each intersection point
-        self.ray_lengths = ray_lengths #all distances travelled by the ray, including from  the dome to the aperture plane
-        self.idxs = idxs #indexes of all intersected segments        
-"""
 
 
 
@@ -78,11 +56,6 @@ else:
     segments = np.append(segments, rt_line.discretize_function(s1, 30, n1, n2, False, False))
     segments = np.append(segments, rt_line.discretize_function(s2, 30, n2, n1, False, False))
 
-plt.figure()
-for i in range(len(segments)):
-    plt.plot([segments[i].A[0], segments[i].B[0]], [segments[i].A[1], segments[i].B[1]], color = 'red', linewidth = 0.5)
-#plt.ylim([0.1,0.5])
-plt.show()
 ################# end create segments #######################
 
 
@@ -98,31 +71,40 @@ angle_position = []
 angle_in, angle_position = rt_line.reverseRayTracing_segments(I.output_angle, segments)
 f = interp1d(angle_position, angle_in, kind='cubic')                                        #interpolate to find function f that fits angle position and angle in            
 angles_for_direct = f(Array)                                                                #Find angles corresponding to defined points on x-axis
-
+#angles_for_direct = np.deg2rad(np.ones(N)*I.output_angle)   
 
 plot = 1    
 ################################# DIRECT ##########################################3
 #Create plot for direct raytracing
 if plot:
     fig = plt.figure()
-    fig.set_dpi(300)
+    fig.set_dpi(700)
     ax = fig.add_subplot(111)
-    csfont = {'fontname':'Times New Roman'}
-    plt.ylim([0,1])
-    plt.xlim([-0.8, 0.8])
-    plt.ylabel('z (mm)')
-    plt.xlabel('x (mm)')
-    plt.title('Direct Ray Tracing', **csfont)
-    plt.plot(p, surface1_arr, color='grey', linewidth = 0.5)
-    plt.plot(p, surface2_arr, color='grey', linewidth = 0.5)
-    if I.nSurfaces == 4:
-        plt.plot(p, MLayer1_arr, color = 'chocolate', linewidth = 0.1)
-        plt.plot(p, MLayer2_arr, color = 'chocolate', linewidth = 0.1)
-        ax.fill_between(p, MLayer1_arr, surface1_arr, color = 'orange')
-        ax.fill_between(p, MLayer2_arr, surface2_arr, color = 'orange')
+    csfont = {'fontname':'Times New Roman', 'fontsize':'10'}
+        
+    font = {'family' : 'Times New Roman',
+        'weight' : 'normal',
+        'size'   : 12}
+
+    plt.rc('font', **font)
+    
+    plt.ylim([0,0.75])
+    plt.xlim([-1.5, 1.5])
+    
+    plt.ylabel('z (m)')
+    plt.xlabel('x (m)')
+    plt.plot(p, surface1_arr, color='gray', linewidth = 1)
+    plt.plot(p, surface2_arr, color='gray', linewidth = 1)
+    ax.fill_between(p, surface2_arr, surface1_arr, color = '#c3c5e2')
+
+    # if I.nSurfaces == 4:
+    #     plt.plot(p, MLayer1_arr, color = 'chocolate', linewidth = 0.1)
+    #     plt.plot(p, MLayer2_arr, color = 'chocolate', linewidth = 0.1)
+    #     ax.fill_between(p, MLayer1_arr, surface1_arr, color = 'orange')
+    #     ax.fill_between(p, MLayer2_arr, surface2_arr, color = 'orange')
     ax.set_aspect(1, adjustable='box')
-    for i in range(0, len(segments)):
-        plt.plot([segments[i].A[0], segments[i].B[0]], [segments[i].A[1], segments[i].B[1]], color = 'red', linewidth = 0.5)
+    # for i in range(0, len(segments)):
+        # plt.plot([segments[i].A[0], segments[i].B[0]], [segments[i].A[1], segments[i].B[1]], color = 'red', linewidth = 0.5)
 
 
 
@@ -140,7 +122,7 @@ for i in range(0, len(rays)):
     Pk_np = rays[i].Pk
     for j in range(0, len(Pk_np)-3):
         if j % 2 == 0:                              #to get each point, Pk_np = [x1 y1 x2 y2...]
-            if plot: plt.plot([Pk_np[j], Pk_np[j+2]], [Pk_np[j+1], Pk_np[j+3]], color='black', linewidth = 1)
+            if plot: plt.plot([Pk_np[j], Pk_np[j+2]], [Pk_np[j+1], Pk_np[j+3]], color='black', linewidth = 0.5)
             x_ap[i] = Pk_np[j]
             y_ap[i] = Pk_np[j+1]    
 
@@ -154,6 +136,8 @@ nk = np.zeros([N,2])                                                #normal of t
 sk = np.zeros([N,2])                                                #pointying vector
 ts_cascade = np.ones(N, dtype=np.complex_)                            #reflection coefficient normal to plane of incident
 ts_aggr = np.ones(N, dtype=np.complex_)
+
+print(rays[0].ray_lengths)
 
 #all these functions can be optimized
 path_length = rtube.getPathLength(rays, segments)                   #length that ray have travelled, including material parameters
@@ -186,9 +170,9 @@ ax2.yaxis.label.set_fontsize(10)
 plt.grid()
 plt.show()
 
-##saving the radiation pattern results in an excel
-df = pd.DataFrame(Etotal_dB, theta)
-df.to_excel('RT_radpat_' + str(I.output_angle) + 'deg.xlsx', sheet_name='Sheet1')
+# ##saving the radiation pattern results in an excel
+# df = pd.DataFrame(Etotal_dB, theta)
+# df.to_excel('RT_radpat_' + str(I.output_angle) + 'deg.xlsx', sheet_name='Sheet1')
 
 
 
@@ -196,7 +180,7 @@ Etotal, theta, Ap_field_aggr, dck_agg = rp.getRadiationPattern(Ak_ap, path_lengt
 Etotal_dB = 20*np.log10(abs(Etotal))
 print('Aggregate: '+ str(max(Etotal_dB)))
 
-# #plot the radiation pattern
+#plot the radiation pattern
 fig2 = plt.figure()
 fig2.set_dpi(400)
 ax2 = fig2.add_subplot(111)
@@ -215,9 +199,9 @@ ax2.yaxis.label.set_fontsize(10)
 plt.grid()
 plt.show()
 
-#saving the radiation pattern results in an excel
-df = pd.DataFrame(Etotal_dB, theta)
-df.to_excel('RT_radpat_aggr' + str(I.output_angle) + 'deg.xlsx', sheet_name='Sheet1')
+# #saving the radiation pattern results in an excel
+# df = pd.DataFrame(Etotal_dB, theta)
+# df.to_excel('RT_radpat_aggr' + str(I.output_angle) + 'deg.xlsx', sheet_name='Sheet1')
 
 
 # plt.figure()
@@ -250,7 +234,8 @@ df.to_excel('RT_radpat_aggr' + str(I.output_angle) + 'deg.xlsx', sheet_name='She
 # plt.show()
     
     
-    
+end = time.time()
+print("Execution time : ", (end-start))    
     
     
     

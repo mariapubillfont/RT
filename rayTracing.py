@@ -385,30 +385,32 @@ def reverseRayTracing_segments(theta_out_x, segments):
     all_normals = [list(row) for i in range( 0, len(x_aperture))]
     idx_segments = [list(row) for i in range( 0, len(x_aperture))]
     sk = np.zeros([len(x_aperture),2])
-    plot = False
+    plot = True
 
     # FOR PLOTTING PRUPOSES ONLY
     if plot:
-        fig = plt.figure(2)
-        fig.set_dpi(300)
+
+        
+            
+        fig = plt.figure()
+        fig.set_dpi(700)
         ax = fig.add_subplot(111)
-        csfont = {'fontname':'Times New Roman'}
-        plt.ylim([0,0.750])
-        plt.xlim([-0.8, 0.8])
-        plt.ylabel('z (mm)', **csfont )
-        plt.xlabel('x (mm)', **csfont)
-        plt.rcParams['font.size'] = '12'
-        plt.rcParams["font.family"] = "Times New Roman"
-        plt.title('Reverse Ray Tracing', **csfont)
-        plt.plot(p, surface1_arr, color='grey', linewidth = 0.5)
-        plt.plot(p, surface2_arr, color='grey', linewidth = 0.5)
-        plt.plot(p, MLayer1_arr, color = 'chocolate', linewidth = 0.1)
-        plt.plot(p, MLayer2_arr, color = 'chocolate', linewidth = 0.1)
-        ax.fill_between(p, MLayer1_arr, surface1_arr, color = 'orange')
-        ax.fill_between(p, MLayer2_arr, surface2_arr, color = 'orange')
+        
+          
+        font = {'family' : 'Times New Roman',
+                'weight' : 'normal',
+                'size'   : 12}
+
+        plt.rc('font', **font)
+        plt.ylim([0,0.75])
+        plt.xlim([-1.5, 1.5])
+        plt.ylabel('z (m)')
+        plt.xlabel('x (m)')
+        plt.plot(p, surface1_arr, color='gray', linewidth = 1)
+        plt.plot(p, surface2_arr, color='gray', linewidth = 1)
+        ax.fill_between(p, surface2_arr, surface1_arr, color = '#c3c5e2')
         ax.set_aspect(1, adjustable='box')
-        for i in range(0, len(segments)):
-            plt.plot([segments[i].A[0], segments[i].B[0]], [segments[i].A[1], segments[i].B[1]], color = 'red', linewidth = 0.5)
+
 
     for i in range(0, len(x_aperture)):         #For each ray
         xA = x_aperture[i]                      #x starting point for ray 
@@ -435,9 +437,8 @@ def reverseRayTracing_segments(theta_out_x, segments):
                 Pk_np = np.array(Pk[i])
                 if plot:
                     for m in range(0,int(len(Pk_np)/2) - 1):
-                       plt.plot([Pk_np[m*2], Pk_np[m*2+2]], [Pk_np[m*2+1], Pk_np[m*2+3]], color='brown', linewidth = 1)
+                       plt.plot([Pk_np[m*2], Pk_np[m*2+2]], [Pk_np[m*2+1], Pk_np[m*2+3]], color='black', linewidth = 0.5)
     if plot:
-        plt.grid()
         plt.show()
     return angle_in, angle_position
 #=============================================================================  

@@ -83,7 +83,8 @@ def getPathLength(rays, segments):
         for j in range(0, len(idxs)-1):                             #-1 because we want to skip the last surface (aperture)
             idx = int(idxs[j])
             if  j == 0:
-                path_length[i] = path_length[i] + ray_length[j]*segments[idx].n1 - phi_i/k0   
+                path_length[i] = path_length[i] + ray_length[j]*segments[idx].n1 
+                #- phi_i/k0   
             elif reflections == 0: 
                 path_length[i] = path_length[i] + ray_length[j]*segments[idx].n1
 
@@ -197,7 +198,7 @@ def getTransmissionCoef(rays, segments):
                 #plt.quiver(*origin, *orthogonal, color='green', angles='xy', scale_units='xy', scale=1)
                 x_end_orth = x_0_orth + 1*orthogonal[0]                                             #orthogonal vector end
                 y_end_orth = y_0_orth + 1*orthogonal[1]                                             #^
-                plt.plot(x_0_orth, y_0_orth, 'o', color = 'pink')
+               # plt.plot(x_0_orth, y_0_orth, 'o', color = 'pink')
                 #plt.plot(x_end_orth, y_end_orth, 'go')
 
                 aux = intersect_line_seg([x_0_n, y_0_n], [x_end_n, y_end_n], [x_0_orth, y_0_orth], [x_end_orth, y_end_orth])
@@ -213,7 +214,7 @@ def getTransmissionCoef(rays, segments):
                 
                 #print(last_inter, [x_int, y_int])
                 #
-                plt.plot(x_int, y_int, 'o', color = 'black')
+               # plt.plot(x_int, y_int, 'o', color = 'black')
 
                 thickness_agrr = np.append(thickness_agrr, distance([x_int, y_int], last_inter))
                 delta = np.append(delta, distance([x_int, y_int], [x_0_orth, y_0_orth]))

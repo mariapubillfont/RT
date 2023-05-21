@@ -14,45 +14,50 @@ k1 = -1.2
 k2 = -3.9
 h1 = 0.325
 h2 = 0.345
-#h2 = 0.425
-D = 1.500                                           # Solution space for the x-axis
+D = 1.500 
+
 p = np.linspace(-D, D, 10000)                       # number of points, represents the x-axis
 e0 = 8.8541878128e-12                               #vacuum permitivitty
 f = 13e9                                            #frequency            
 c0 = 299792458                                      #vacuum light speed
 wv = c0/f                                           # wavelength in mm (defined in the paper)
 k0 = 2*np.pi/wv                                     #propagation constant in free space
-L = 3*0.325                                         #length of the Array (hmax = L/3) (defined in the paper)
+L = 3*h1                                         #length of the Array (hmax = L/3) (defined in the paper)
 m_max = 10000000                                    #max slope possible
 const=40                                            #constant to make even phase front at aperture plane
 long = 0.300                                        #how long is the final point of the rays
 
-N = 100                                             #number of rays
+N = 100                                         #number of rays
 Array = np.linspace (-L/2, L/2, N)                  #the starting points of the rays over the array
-output_angle = 35 
+output_angle = 60 
+
+
 tilted_angle = 20                                #in degrees from z-axis
-spacing = 10                                        #ray spacing on the x-axis    
+spacing = 10                                    #ray spacing on the x-axis    
 MAX_ITERATIONS = 5
 
-#type_surface = 'flat'                               #Surface type#
+type_surface = 'flat'                               #Surface type#
 #type_surface = 'conic'
 #type_surface = 'oblique'
-type_surface = 'tilted'
+#type_surface = 'tilted'
 
+
+if type_surface == 'flat': h2 = 0.425
 ITU_model = 0
 cascade = 1
-amplitude_mod = 0
+amplitude_mod = 1
+
 matchingLayers = False
 if matchingLayers:
     nSurfaces = 4 
 else:
     nSurfaces = 2 
 
-er = 1
+er = 2.5
 mur = 1
 
 losses = 0                                         #losses true or false
-reflections = 0                      #reflections true or false
+reflections = 1                      #reflections true or false
 tan_delta = 0.00066 if losses == 1 else 0           #loss coefficient in dielectric
 
 
@@ -85,8 +90,8 @@ thickness_titled = 0.1/np.cos(np.deg2rad(tilted_angle))
 
 theta_out_x = np.deg2rad(90-output_angle)
 theta_i_y = np.ones(N)*output_angle
-y_r_max = np.sin(theta_out_x)*h2*4
-x_r_max = np.cos(theta_out_x)*D*np.sign(output_angle)
+y_r_max = np.sin(theta_out_x)*h2*2
+x_r_max = np.cos(theta_out_x)*(D)*np.sign(output_angle)
 m3 = np.tan(theta_out_x)
 if m3 > m_max: m3=m_max
 m_t = -1./m3
