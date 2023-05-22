@@ -83,8 +83,7 @@ def getPathLength(rays, segments):
         for j in range(0, len(idxs)-1):                             #-1 because we want to skip the last surface (aperture)
             idx = int(idxs[j])
             if  j == 0:
-                path_length[i] = path_length[i] + ray_length[j]*segments[idx].n1 
-                #- phi_i/k0   
+                path_length[i] = path_length[i] + ray_length[j]*segments[idx].n1 - phi_i/k0   
             elif reflections == 0: 
                 path_length[i] = path_length[i] + ray_length[j]*segments[idx].n1
 

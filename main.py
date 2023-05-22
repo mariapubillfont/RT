@@ -171,8 +171,8 @@ plt.grid()
 plt.show()
 
 # ##saving the radiation pattern results in an excel
-# df = pd.DataFrame(Etotal_dB, theta)
-# df.to_excel('RT_radpat_' + str(I.output_angle) + 'deg.xlsx', sheet_name='Sheet1')
+df = pd.DataFrame(Etotal_dB, theta)
+df.to_excel('RT_radpat_' + str(I.output_angle) + 'deg.xlsx', sheet_name='Sheet1')
 
 
 
@@ -200,8 +200,8 @@ plt.grid()
 plt.show()
 
 # #saving the radiation pattern results in an excel
-# df = pd.DataFrame(Etotal_dB, theta)
-# df.to_excel('RT_radpat_aggr' + str(I.output_angle) + 'deg.xlsx', sheet_name='Sheet1')
+df = pd.DataFrame(Etotal_dB, theta)
+df.to_excel('RT_radpat_aggr' + str(I.output_angle) + 'deg.xlsx', sheet_name='Sheet1')
 
 
 # plt.figure()

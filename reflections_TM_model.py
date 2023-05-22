@@ -154,9 +154,9 @@ def getReflectionCoefficients_cascade(incidentAngle,layerThickness_in,er, freque
     incidenceAngleRadians1 = incidentAngle[0]
 
     if len(layerThickness_in) == 1:
-        layerThickness = [0, d_core]
+        layerThickness = [0, 0]
         complexRelativePermittivity = [1, er]
-        phase_compensation = 0
+        phase_compensation = 1
     else:
         layerThickness = [0, layerThickness_in[0], 0]
         complexRelativePermittivity = [1, np.sqrt(er), (er)]

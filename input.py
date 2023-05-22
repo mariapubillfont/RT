@@ -36,28 +36,28 @@ tilted_angle = 20                                #in degrees from z-axis
 spacing = 10                                    #ray spacing on the x-axis    
 MAX_ITERATIONS = 5
 
-type_surface = 'flat'                               #Surface type#
+#type_surface = 'flat'                               #Surface type#
 #type_surface = 'conic'
-#type_surface = 'oblique'
+type_surface = 'oblique'
 #type_surface = 'tilted'
 
 
 if type_surface == 'flat': h2 = 0.425
-ITU_model = 0
+ITU_model = 1
 cascade = 1
-amplitude_mod = 1
+amplitude_mod = 0
 
-matchingLayers = False
+matchingLayers = True
 if matchingLayers:
     nSurfaces = 4 
 else:
     nSurfaces = 2 
 
-er = 2.5
+er = 1
 mur = 1
 
 losses = 0                                         #losses true or false
-reflections = 1                      #reflections true or false
+reflections = 0                     #reflections true or false
 tan_delta = 0.00066 if losses == 1 else 0           #loss coefficient in dielectric
 
 
