@@ -25,7 +25,6 @@ L = I.L
 Array = I.Array                             #x-values indicating where the array is
 D = I.D                                     #x-space
 
-
 s1 = I.s1
 s2 = I.s2
 s0 = I.s0
@@ -81,22 +80,17 @@ if plot:
     fig.set_dpi(700)
     ax = fig.add_subplot(111)
     csfont = {'fontname':'Times New Roman', 'fontsize':'10'}
-        
     font = {'family' : 'Times New Roman',
         'weight' : 'normal',
         'size'   : 12}
-
     plt.rc('font', **font)
-    
     plt.ylim([0,0.75])
     plt.xlim([-1.5, 1.5])
-    
     plt.ylabel('z (m)')
     plt.xlabel('x (m)')
     plt.plot(p, surface1_arr, color='gray', linewidth = 1)
     plt.plot(p, surface2_arr, color='gray', linewidth = 1)
     ax.fill_between(p, surface2_arr, surface1_arr, color = '#c3c5e2')
-
     # if I.nSurfaces == 4:
     #     plt.plot(p, MLayer1_arr, color = 'chocolate', linewidth = 0.1)
     #     plt.plot(p, MLayer2_arr, color = 'chocolate', linewidth = 0.1)
@@ -105,8 +99,6 @@ if plot:
     ax.set_aspect(1, adjustable='box')
     # for i in range(0, len(segments)):
         # plt.plot([segments[i].A[0], segments[i].B[0]], [segments[i].A[1], segments[i].B[1]], color = 'red', linewidth = 0.5)
-
-
 
 Ak_ap = []                                          #E field amplitude on the aperture
 phi_a = np.zeros(N)                                 #phase distribution on the array
@@ -117,7 +109,6 @@ x_ap = np.zeros(N)                                  #x value on aperture
 y_ap = np.zeros(N)                                  #y value on aperture    
 
 rays = rt_line.directRayTracing_segments(angles_for_direct, segments)
-
 for i in range(0, len(rays)):
     Pk_np = rays[i].Pk
     for j in range(0, len(Pk_np)-3):
@@ -175,7 +166,6 @@ df = pd.DataFrame(Etotal_dB, theta)
 df.to_excel('RT_radpat_' + str(I.output_angle) + 'deg.xlsx', sheet_name='Sheet1')
 
 
-
 Etotal, theta, Ap_field_aggr, dck_agg = rp.getRadiationPattern(Ak_ap, path_length[1:N-1], nk[1:N-1], sk[1:N-1], dck, x_ap[1:N-1], y_ap[1:N-1], ts_aggr[1:N-1]) #does not include the outer rays
 Etotal_dB = 20*np.log10(abs(Etotal))
 print('Aggregate: '+ str(max(Etotal_dB)))
@@ -204,36 +194,6 @@ df = pd.DataFrame(Etotal_dB, theta)
 df.to_excel('RT_radpat_aggr' + str(I.output_angle) + 'deg.xlsx', sheet_name='Sheet1')
 
 
-# plt.figure()
-# plt.title('Magnitude')
-# # plt.plot(np.abs(ts_cascade), color = 'black')
-# # plt.plot(np.abs(ts_aggr), color = 'red')
-
-# plt.plot(np.abs(Ap_field_casc),color = 'black')
-# plt.plot(np.abs(Ap_field_aggr),color = 'red')
-# plt.ylim([0.0, 0.5])
-# plt.legend(('Cascade', 'Aggregate'))
-# plt.grid()
-# plt.show()
-
-
-# plt.figure()
-# plt.title('Phase rad')
-# # plt.plot(np.angle(ts_cascade), color = 'black')
-# # plt.plot(np.angle(ts_aggr), color = 'red')
-
-# plt.plot(np.angle(Ap_field_casc),color = 'black')
-# plt.plot(np.angle(Ap_field_aggr),color = 'red')
-# plt.legend(('Cascade', 'Aggregate'))
-# plt.grid()
-# plt.show()    
-
-# plt.figure()
-# plt.plot(dck_casc)
-# plt.plot(dck_agg)
-# plt.show()
-    
-    
 end = time.time()
 print("Execution time : ", (end-start))    
     

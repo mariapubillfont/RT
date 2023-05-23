@@ -16,19 +16,6 @@ N = I.N
 k0 = I.k0
 
 
-# df = pd.read_excel('phaseDistribution_' + str(0) + '.xlsx', sheet_name='Sheet1')
-# df_np = np.array(df)
-# phase = df_np[:,1]
-# x_phase = df_np[:,0]
-# f = interp1d(x_phase, phase)
-# xnew = (np.linspace(-L/2, L/2, num=N+1, endpoint=True))
-# #phase_distribution = f(Array)    
-# fig1 = plt.figure(1)
-# plt.plot(x_phase, -phase, '.')
-# fig1.set_dpi(300)
-# plt.title('phase distribution/k0')
-# plt.grid()
-# plt.show() 
 
 
 #=============================================================================

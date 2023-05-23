@@ -133,8 +133,7 @@ def getAmplitude(rays, segments, theta_i):
         nk = [rays[i].normals[nSurfaces*2-2], rays[i].normals[nSurfaces*2-1]]       #normal to surface
         sk = rays[i].sk                                                             #poynting vector
         theta_k[i] = getAngleBtwVectors(nk, sk)
-        #theta_i[i] = np.rad2deg(rays[i].incident_angle[0]  )
-        #print(theta_i[i])             
+             
         if i > 1:                                                                   #exclude first ray, code will handle ray i-1 for each loop
             Pstart1 = [Pk[i-2][0], Pk[i-2][1]]                                      #intersection to the left of ray on array
             Pstart2 = [Pk[i][0], Pk[i][1]]                                          #intersection to the right of ray on array   
@@ -147,20 +146,16 @@ def getAmplitude(rays, segments, theta_i):
 def getTransmissionCoef(rays, segments):
     ts_coeff = np.ones(N, dtype=np.complex_)                                                    #transmission coefficients
     ts_coeff_aggregate = np.ones(N, dtype=np.complex_)
-
-
     for i in range(0, len(rays)):
         #idxs = rays[i].idxs
         Pk = rays[i].Pk                                                                         #intersection points of ray and segment, setup as [x1 y1 x2 y2 ...]                                               
         idx = 0                                                                                 #intersection index
         intersections = np.zeros([int(len(Pk)/2)-1, 2])                                         #intersections
-        thickness = []                                                                          #distance the ray travels between segments
-        thickness_agrr = []
-        delta = []
+        thickness = []                                                                          #distance the ray travels between segments for the cascade mode
+        thickness_agrr = []                                                                     #distance the ray travels between segments for the cascade mode
+        delta = []                                                                              #distance between last intersection point and the normal drawn from the first instersection
         incident_angle = rays[i].incident_angle
-        #idxs_int = rays[i].idxs
         normals = np.zeros([len(intersections), 2])                                             #normal where there is an intersection
-        #orthogonals = np.zeros([len(intersections), 2])
         orthogonal = [- rays[i].normals[1], rays[i].normals[0] ]                                #orthogonal to normal of array, counterclockwise
         last_inter = []
 
@@ -177,28 +172,17 @@ def getTransmissionCoef(rays, segments):
         #with offseted plane to calculated travelled distance
         for j in range(0, len(intersections)-1):                                                    #for each intersection excluding aperture plane
             if j == 0:                                                                              #intersection with array, start values
-                #idx_segment = int(idxs_int[j])
                 v_normal = normals[j]                                                               #start normal
-                #origin = intersections[j]  
                 [x_0_n, y_0_n] = intersections[j]                                                   #start position
                 x_end_n = x_0_n + 1*v_normal[0]                                                     #end position of ray
                 y_end_n = y_0_n + 1*v_normal[1]                                                     #^
                 last_inter =  [x_0_n, y_0_n]                                                        #last intersection
-                #plt.plot(x_0_n, y_0_n, 'bx')
-                #plt.plot(x_end_n, y_end_n, 'gx')
-                #plt.quiver(*origin, *v_normal, color='red', angles='xy', scale_units='xy', scale=1)
 
             elif j > 0:
                 thickness = np.append(thickness, distance(intersections[j], intersections[j-1]))    #distance between intersections    
-
-
                 [x_0_orth, y_0_orth] = intersections[j]                                             #orhtogonal vector start
-                #origin = intersections[j]
-                #plt.quiver(*origin, *orthogonal, color='green', angles='xy', scale_units='xy', scale=1)
                 x_end_orth = x_0_orth + 1*orthogonal[0]                                             #orthogonal vector end
                 y_end_orth = y_0_orth + 1*orthogonal[1]                                             #^
-               # plt.plot(x_0_orth, y_0_orth, 'o', color = 'pink')
-                #plt.plot(x_end_orth, y_end_orth, 'go')
 
                 aux = intersect_line_seg([x_0_n, y_0_n], [x_end_n, y_end_n], [x_0_orth, y_0_orth], [x_end_orth, y_end_orth])
                 if aux == None:                                                                     #test if ray intersect with orthogonal vector
@@ -206,15 +190,9 @@ def getTransmissionCoef(rays, segments):
                     x_end_orth = x_0_orth + 1*orthogonal[0]                                         #new orthogonal vector end test
                     y_end_orth = y_0_orth + 1*orthogonal[1]                                         #^
                     [x_int, y_int] = intersect_line_seg([x_0_n, y_0_n], [x_end_n, y_end_n], [x_0_orth, y_0_orth], [x_end_orth, y_end_orth]) #test flipped vector for intersection
-                   # plt.quiver(*origin, *orthogonal, color='pink', angles='xy', scale_units='xy', scale=1)
-                    #print('No intersection')
                 else: 
                     [x_int, y_int] = aux
                 
-                #print(last_inter, [x_int, y_int])
-                #
-               # plt.plot(x_int, y_int, 'o', color = 'black')
-
                 thickness_agrr = np.append(thickness_agrr, distance([x_int, y_int], last_inter))
                 delta = np.append(delta, distance([x_int, y_int], [x_0_orth, y_0_orth]))
                 last_inter = [x_int, y_int]    
@@ -225,10 +203,6 @@ def getTransmissionCoef(rays, segments):
         elif I.nSurfaces == 2:
             complexPermittivity = [1, er, 1]
 
-        #Choose transmission/reflection method
-        #if I.ITU_model == 1:
-        #    layerThickness =  np.pad(thickness_agrr, (1, 1), 'constant', constant_values=(0,0)) #add thickness of air
-        #    ts_coeff[i] = itu.getReflectionCoefficients_multiLayer(k0, layerThickness, 'TE', complexPermittivity, incident_angle[0])
         if reflections == 1:
             ts_coeff[i] = multilayer.getReflectionCoefficients_cascade(incident_angle, thickness, er, I.f) #thickness_agg, 3rd arg
             ts_coeff_aggregate[i] = multilayer.getReflectionCoefficients_agg(incident_angle, thickness_agrr, complexPermittivity, I.f, delta)

@@ -76,10 +76,7 @@ def __comp_der(f,z): #compute derivative
 def getNormal(x,f):
     # x - x-value
     # f - function for surface
-
-    #lukas - not necessary
-    #def F(t): return f(t)
-    #m_t = __comp_der(F, x)  
+  
     m_t = __comp_der(f, x)                  #tangential slope
     if abs(m_t) == 0:                       
         m_n = 1.E5                          #normal slope is infinite, approx 10^5
@@ -101,9 +98,6 @@ def discretize_function(f, n_segments, n1, n2, isLast, isFirst):
     discrete_x = np.linspace(-D, D, n_segments+1)                                           #start and stop x-values for segments
     for i in range(0, n_segments):
         u = [discrete_x[i+1] - discrete_x[i], f(discrete_x[i+1]) - f(discrete_x[i])]        #maps out the straight line that is the segment
-        #norm = np.sqrt(u[0] ** 2 + u[1] ** 2)
-        #u_normalized = [u[0] / norm, u[1] / norm]
-        #normal = [-u_normalized[1], u_normalized[0]] 
 
         m_n0 = getNormal(discrete_x[i], f)
         v_n0 = np.array([1,m_n0])*np.sign(m_n0)                                             #normal vector of first point
@@ -114,12 +108,6 @@ def discretize_function(f, n_segments, n1, n2, isLast, isFirst):
         v_unitn1 = v_n1/np.sqrt(v_n1[0]**2 + v_n1[1]**2)                                    #normal unit vector of second point
 
         surface = np.append(surface, LineSegment(v_unitn0, v_unitn1, n1, n2, [discrete_x[i], f(discrete_x[i])], [discrete_x[i+1], f(discrete_x[i+1])], u, 1, isLast, isFirst))
-        #for testing and plotting purposes    
-        # origin0 = np.array([discrete_x[i], f(discrete_x[i])])
-        # plt.quiver(*origin0, *u, color='red', angles='xy', scale_units='xy', scale=1)
-        # plt.quiver(*origin0, *v_unitn0, color='blue')
-        # origin1 = np.array([discrete_x[i+1], f(discrete_x[i+1])])
-        # plt.quiver(*origin1, *v_unitn1, color='lightblue')
     return surface
 #=============================================================================
 
@@ -128,18 +116,14 @@ def discretize_function(f, n_segments, n1, n2, isLast, isFirst):
 def getSurfacePoints(s,p):
     # s - vector of points corresponding to surface s(p)
     # p - vector of x-points 
-
     array = []
     spoints=[]
-    #lukas - not necessary
-    #index = 0
     s_aux = np.ones(len(p))*s if type(s) == float else s
     for i in range(0,len(s_aux)-1):
         if(i%I.spacing==0):                                         #find where the rays start
             spoints = np.append(spoints, s_aux[i])
             array = np.append(array, p[i])
-        #lukas - not necessary
-        #index += index
+
     return spoints, array
 #=============================================================================
 
@@ -232,8 +216,6 @@ def findThickness(segments, pointA, pointB):
     Ray = [pointB[0] - pointA[0], pointB[1] - pointA[1]]
     idx = 0
     for i in range(0, len(segments)):
-        #plt.quiver(*segments[i].A, *segments[i].u, color = 'red', angles='xy', scale_units='xy', scale=1)
-
         aux = intersect_line_seg(segments[i], i, pointA, pointB)
         if aux != None:
             intersection = aux[0]
@@ -245,7 +227,6 @@ def findThickness(segments, pointA, pointB):
                 if idx > 0:
                     thickness=np.append(thickness, distance([inter[(idx-1)*2], inter[(idx-1)*2 +1 ]], [inter[(idx)*2], inter[(idx)*2 +1 ]]))
                 idx += 1
-
     return inter, thickness    
 
 
@@ -388,19 +369,13 @@ def reverseRayTracing_segments(theta_out_x, segments):
     plot = True
 
     # FOR PLOTTING PRUPOSES ONLY
-    if plot:
-
-        
-            
+    if plot:            
         fig = plt.figure()
         fig.set_dpi(700)
         ax = fig.add_subplot(111)
-        
-          
         font = {'family' : 'Times New Roman',
                 'weight' : 'normal',
                 'size'   : 12}
-
         plt.rc('font', **font)
         plt.ylim([0,0.75])
         plt.xlim([-1.5, 1.5])

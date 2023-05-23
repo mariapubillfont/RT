@@ -3,18 +3,9 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-#import P2040_model_matrix as modmat
 import input as I
-#import model_multilayer as multilayer
 
 
-# General parameters
-# frequency = 3e8
-# lambd = 3e8/frequency
-# k_0 = 2*np.pi/lambd
-# d_core = lambd # Core thickness
-# tan_delta = 0.0
-# er = 2.5*(1 - 1j*tan_delta) # Core permittivity
 
 def fresnelCoefficients_TE(theta1, theta2, n1, n2):
     tmp1 = n1 * np.cos(theta1)
@@ -29,43 +20,6 @@ def fresnelCoefficients_TM(theta1, theta2, n1, n2):
     r_te = (tmp1 - tmp2) / (tmp1 + tmp2)
     t_te = 2 * n1 * np.cos(theta1) / (tmp1 + tmp2)
     return [r_te, t_te]
-
-def multiLayerTransferMatrixMod(theta_in, t, er, frequency, pol):
-# Transfer matrix for multilayer slab consisting of N finite thickness
-# layers, for N+2 permittivities (for the initial region, the N layers, and
-# the final region).
-#
-# The transfer matrix is refered to the interface between layer 0 (the
-# incident region) and layer 1, and the interface between layer N and layer
-# N+1 (the final region). The thickness values of layers 0 and N+1 are
-# hence assumed to be zero (and not used).
-#
-    # Wavelength
-    lambd = 299792458/frequency
-    k0 = 2*np.pi/lambd
-
-    # Transfer matrix
-    A = np.identity(2)
-    for n in range (1,np.size(er)):
-        # Angle in outgoing layer (5.4)
-        theta_out = np.arcsin(np.sqrt(er[n-1]/er[n])*np.sin(theta_in))
-
-    # Propagation constant normal to boundary ok for plane wave for ray?!
-        k_n = k0 * np.sqrt(er[n]) * np.cos(theta_out) #SHOULD BE A *COS
-
-    # Fresnel reflection and transmission coefficients
-        if pol == 'te':
-            [R, T] = fresnelCoefficients_TE(theta_in, theta_out, np.sqrt(er[n-1]), np.sqrt(er[n]))
-        else:
-            [R, T] = fresnelCoefficients_TM(theta_in, theta_out, np.sqrt(er[n-1]), np.sqrt(er[n]))
-        
-    # Transfer matrix
-        e = 1j * k_n * t[n]
-        A = 1/T  * np.matmul(A, [ [np.exp(e), R*np.exp(-e)],  [R*np.exp(e),  np.exp(-e)]])
-
-    # Update angle
-        theta_in = theta_out
-    return A
 
 
 
@@ -128,9 +82,9 @@ def getReflectionCoefficients_agg(incidentAngle,layerThickness_in,complexRelativ
     tTE1 = np.ones([np.size(incidenceAngleRadians1),1], dtype=np.complex_)
     rTM1 = np.ones([np.size(incidenceAngleRadians1),1],dtype=np.complex_)
     tTM1 = np.ones([np.size(incidenceAngleRadians1),1], dtype=np.complex_)
-    A = multiLayerTransferMatrixMod(incidenceAngleRadians1, layerThickness, complexRelativePermittivity, frequency, 'te')
+    A = multiLayerTransferMatrix(incidenceAngleRadians1, layerThickness, complexRelativePermittivity, frequency, 'te')
     rTE1 = A[1][0]/A[0][0]
-    tTE1 = 1/A[0][0]*np.exp(-1j*k_0*distance*np.sin(abs(incidenceAngleRadians1)))
+    tTE1 = 1/A[0][0]*np.exp(-1j*k_0*distance*np.sin(abs(incidenceAngleRadians1))) #we add phase compensation because the model is for plane waves
     A = multiLayerTransferMatrix(incidenceAngleRadians1, layerThickness, complexRelativePermittivity, frequency, 'tm')
     rTM1 = A[1,0]/A[0,0]
     tTM1 = 1/A[0,0]
@@ -156,15 +110,13 @@ def getReflectionCoefficients_cascade(incidentAngle,layerThickness_in,er, freque
     if len(layerThickness_in) == 1:
         layerThickness = [0, 0]
         complexRelativePermittivity = [1, er]
-        phase_compensation = 1
+        phase_compensation = 0
     else:
         layerThickness = [0, layerThickness_in[0], 0]
         complexRelativePermittivity = [1, np.sqrt(er), (er)]
         phase_compensation = 1
     
     theta_out = np.arcsin(np.sin(incidentAngle[0])/np.sqrt(np.sqrt(er))) #refracted angle inisde the matching layer
-    #Z_diec= np.sqrt(2.5-np.sin(incidenceAngleRadians1)**2)/(2.5*np.cos(incidenceAngleRadians1))
-    # Transfer matrix model
     rTE1 = np.ones([np.size(incidenceAngleRadians1),1],dtype=np.complex_)
     tTE1 = np.ones([np.size(incidenceAngleRadians1),1], dtype=np.complex_)
     rTM1 = np.ones([np.size(incidenceAngleRadians1),1],dtype=np.complex_)
@@ -173,7 +125,6 @@ def getReflectionCoefficients_cascade(incidentAngle,layerThickness_in,er, freque
     rTE1 = A[1][0]/A[0][0]
     if phase_compensation == 1:
         tTE1 = 1/A[0][0]*np.exp(-1j*k_0*(I.thickness_ML1)*np.tan(theta_out)*np.sin(theta_out))
-        #*np.sqrt(Z_diec)
     else:
         tTE1 = 1/A[0][0]   
     #/(Z_diec)
@@ -182,9 +133,7 @@ def getReflectionCoefficients_cascade(incidentAngle,layerThickness_in,er, freque
     tTM1 = 1/A[0,0]
     #############################################################################################################################
 
-    ####################################### Core propagation #####################################################################
-    # Is this different for a plane wave and a ray?!
-    #
+    ####################################### Core propagation #####################################################################    #
     # For a plane wave, the reference for the propagation phase is normal to
     # the parallel surfaces of the core slab, and in the limit of grazing, the
     # phase difference between upper and lower surface is zero for a plane

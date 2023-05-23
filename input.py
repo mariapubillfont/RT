@@ -53,11 +53,11 @@ if matchingLayers:
 else:
     nSurfaces = 2 
 
-er = 1
+er = 2.5
 mur = 1
 
 losses = 0                                         #losses true or false
-reflections = 0                     #reflections true or false
+reflections = 1                                     #reflections true or false
 tan_delta = 0.00066 if losses == 1 else 0           #loss coefficient in dielectric
 
 
