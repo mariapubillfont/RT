@@ -85,7 +85,7 @@ def getPathLength(rays, segments):
             if  j == 0:
                 path_length[i] = path_length[i] + ray_length[j]*segments[idx].n1 - phi_i/k0   
             elif reflections == 0: 
-                path_length[i] = path_length[i] + ray_length[j]*segments[idx].n1
+                path_length[i] = path_length[i] + ray_length[j]*segments[idx].n1*np.sqrt(1-1j*I.tan_delta)
 
     #save phase distribution on the array
     df = pd.DataFrame(phi_a, Array)

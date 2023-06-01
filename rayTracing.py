@@ -377,8 +377,8 @@ def reverseRayTracing_segments(theta_out_x, segments):
                 'weight' : 'normal',
                 'size'   : 12}
         plt.rc('font', **font)
-        plt.ylim([0,0.75])
-        plt.xlim([-1.5, 1.5])
+        plt.ylim([0, h2*2])
+        plt.xlim([-D, D])
         plt.ylabel('z (m)')
         plt.xlabel('x (m)')
         plt.plot(p, surface1_arr, color='gray', linewidth = 1)
@@ -406,7 +406,7 @@ def reverseRayTracing_segments(theta_out_x, segments):
             lastRay = [x1-x0, y1-y0]            #ray that ends up at array
 
             # If the ray hits the array
-            if abs(x0) <= max(Array)+0.05 and y0 >= 0:
+            if abs(x0) <= max(Array) + max(Array)*0.1 and y0 >= 0:                          #add a 10% of tolerance
                 angle_in = np.append(angle_in, getAngleBtwVectors(lastRay, [0,1]))          #angle between array normal and ray
                 angle_position = np.append(angle_position, x0)                              #where ray hits array
                 Pk_np = np.array(Pk[i])

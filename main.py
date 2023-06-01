@@ -84,8 +84,8 @@ if plot:
         'weight' : 'normal',
         'size'   : 12}
     plt.rc('font', **font)
-    plt.ylim([0,0.75])
-    plt.xlim([-1.5, 1.5])
+    plt.ylim([0,h2*2])
+    plt.xlim([-0.15, 0.15])
     plt.ylabel('z (m)')
     plt.xlabel('x (m)')
     plt.plot(p, surface1_arr, color='gray', linewidth = 1)
