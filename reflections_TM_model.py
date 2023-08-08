@@ -10,9 +10,17 @@ import input as I
 def fresnelCoefficients_TE(theta1, theta2, n1, n2):
     tmp1 = n1 * np.cos(theta1)
     tmp2 = n2 * np.cos(theta2)
+    Efield_mod = 1
     r_te = (tmp1 - tmp2) / (tmp1 + tmp2)
     t_te = 2 * tmp1 / (tmp1 + tmp2)
-    return [r_te, t_te] 
+    if Efield_mod == 1:
+        Efield_conv = np.sqrt(np.cos(theta2)*np.abs(n2)/(np.cos(theta1)*np.abs(n1)))
+        print('paso')
+        return [np.abs(r_te), np.abs(t_te)*Efield_conv] 
+        
+    else:
+        return [r_te, t_te] 
+    
 
 def fresnelCoefficients_TM(theta1, theta2, n1, n2):
     tmp1 = n1 * np.cos(theta2)
@@ -42,6 +50,8 @@ def multiLayerTransferMatrix(theta_in, t, er, frequency, pol):
     for n in range (1,np.size(er)):
         # Angle in outgoing layer (5.4)
         theta_out = np.arcsin(np.sqrt(er[n-1]/er[n])*np.sin(theta_in))
+        if np.isnan(theta_out):
+            theta_out = np.pi/2
 
     # Propagation constant normal to boundary ok for plane wave for ray?!
         k_n = k0 * np.sqrt(er[n]) * np.cos(theta_out) #SHOULD BE A *COS
@@ -88,7 +98,40 @@ def getReflectionCoefficients_agg(incidentAngle,layerThickness_in,complexRelativ
     A = multiLayerTransferMatrix(incidenceAngleRadians1, layerThickness, complexRelativePermittivity, frequency, 'tm')
     rTM1 = A[1,0]/A[0,0]
     tTM1 = 1/A[0,0]
+    print(tTE1, np.abs(tTE1))
     return tTE1
+
+
+def getReflectionCoefficients_aux(incidentAngle,layerThickness_in,complexRelativePermittivity, frequency):
+    lambd = 299792458/frequency
+    k_0 = 2*np.pi/lambd
+    if len(layerThickness_in) == 1:
+        layerThickness = np.pad(layerThickness_in, (1,1), 'constant', constant_values=(0,0))
+        incidentAngle = np.pad(incidentAngle, (1,1), 'edge')
+    else:
+        layerThickness = [0, layerThickness_in[0], layerThickness_in[1], layerThickness_in[2], 0]    
+    incidenceAngleRadians1 = incidentAngle[0]
+    #layerThickness = [0, layerThickness_in[0], layerThickness_in[1], layerThickness_in[2], 0]
+    #complexRelativePermittivity = [1, np.sqrt(er), er, np.sqrt(er), 1] # From air to dielectric
+    #theta_out =np.arcsin(np.sqrt(np.sqrt(er))*np.sin(incidentAngle[3]))
+    #ni/nout*sin(oi)
+    # Transfer matrix model
+    rTE1 = np.ones([np.size(incidenceAngleRadians1),1],dtype=np.complex_)
+    tTE1 = np.ones([np.size(incidenceAngleRadians1),1], dtype=np.complex_)
+    rTM1 = np.ones([np.size(incidenceAngleRadians1),1],dtype=np.complex_)
+    tTM1 = np.ones([np.size(incidenceAngleRadians1),1], dtype=np.complex_)
+    A = multiLayerTransferMatrix(incidenceAngleRadians1, layerThickness, complexRelativePermittivity, frequency, 'te')
+    rTE1 = A[1][0]/A[0][0]
+    tTE1 = 1/A[0][0]
+    A = multiLayerTransferMatrix(incidenceAngleRadians1, layerThickness, complexRelativePermittivity, frequency, 'tm')
+    rTM1 = A[1,0]/A[0,0]
+    tTM1 = 1/A[0,0]
+    print(tTE1, np.abs(tTE1), np.rad2deg(np.angle(tTE1)))
+    return tTE1
+
+
+getReflectionCoefficients_aux([np.deg2rad(44)], [0.1], [1, 4, 2], 13e9)
+
 
 
 

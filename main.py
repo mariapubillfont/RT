@@ -19,7 +19,8 @@ h2 = I.h2
 p = I.p
 n2 = I.n_diec                               #dielectric refractive index
 n1 = I.n1                                   #air refractive indeix 
-nML = I.nML                                 #matching layer dielectric
+nML = I.nML
+nML2 = I.nML2                                 #matching layer dielectric
 N = I.N                                     #number of rays
 L = I.L
 Array = I.Array                             #x-values indicating where the array is
@@ -37,8 +38,14 @@ MLayer2_arr = I.MLayer2
 aperture_plane = I.aperture_plane
 ################ end input import###########
 
-
-
+# df = pd.DataFrame(surface1_arr*1e3, p*1e3)
+# df.to_excel('surface1.xlsx', sheet_name='Sheet1')
+# df = pd.DataFrame(surface2_arr*1e3, p*1e3)
+# df.to_excel('surface2.xlsx', sheet_name='Sheet1')
+# df = pd.DataFrame(MLayer1_arr*1e3, p*1e3)
+# df.to_excel('MLayer1_arr.xlsx', sheet_name='Sheet1')
+# df = pd.DataFrame(MLayer2_arr*1e3, p*1e3)
+# df.to_excel('MLayer2_arr.xlsx', sheet_name='Sheet1')
 
 ############ Create Segments ####################
 segments =[]
@@ -47,13 +54,13 @@ segments = np.append(segments, rt_line.discretize_function(s0, 1, 1,1, False, Tr
 segments = np.append(segments, rt_line.discretize_function(aperture_plane, 1, 1, 1, True, False))
 
 if I.matchingLayers: #if there are matching layers
-    segments = np.append(segments, rt_line.discretize_function(matchingLayer1, 30, n1, nML, False, False))
-    segments = np.append(segments, rt_line.discretize_function(s1, 30, nML, n2, False, False))
-    segments = np.append(segments, rt_line.discretize_function(s2, 30, n2, nML, False, False))
-    segments = np.append(segments, rt_line.discretize_function(matchingLayer2, 30, nML, n1, False, False))
+    segments = np.append(segments, rt_line.discretize_function(matchingLayer1, 70, n1, nML, False, False))
+    segments = np.append(segments, rt_line.discretize_function(s1, 70, nML, n2, False, False))
+    segments = np.append(segments, rt_line.discretize_function(s2, 70, n2, nML2, False, False))
+    segments = np.append(segments, rt_line.discretize_function(matchingLayer2, 70, nML2, n1, False, False))
 else:
-    segments = np.append(segments, rt_line.discretize_function(s1, 30, n1, n2, False, False))
-    segments = np.append(segments, rt_line.discretize_function(s2, 30, n2, n1, False, False))
+    segments = np.append(segments, rt_line.discretize_function(s1, 7, n1, n2, False, False))
+    segments = np.append(segments, rt_line.discretize_function(s2, 7, n2, n1, False, False))
 
 ################# end create segments #######################
 
@@ -84,8 +91,9 @@ if plot:
         'weight' : 'normal',
         'size'   : 12}
     plt.rc('font', **font)
-    plt.ylim([0,h2*2])
-    plt.xlim([-0.15, 0.15])
+    plt.title('Direct RT')
+    plt.ylim([-0,1])
+    plt.xlim([-1.5, 1.5])
     plt.ylabel('z (m)')
     plt.xlabel('x (m)')
     plt.plot(p, surface1_arr, color='gray', linewidth = 1)
@@ -97,8 +105,8 @@ if plot:
     #     ax.fill_between(p, MLayer1_arr, surface1_arr, color = 'orange')
     #     ax.fill_between(p, MLayer2_arr, surface2_arr, color = 'orange')
     ax.set_aspect(1, adjustable='box')
-    # for i in range(0, len(segments)):
-        # plt.plot([segments[i].A[0], segments[i].B[0]], [segments[i].A[1], segments[i].B[1]], color = 'red', linewidth = 0.5)
+    for i in range(0, len(segments)):
+        plt.plot([segments[i].A[0], segments[i].B[0]], [segments[i].A[1], segments[i].B[1]], color = 'red', linewidth = 0.5)
 
 Ak_ap = []                                          #E field amplitude on the aperture
 phi_a = np.zeros(N)                                 #phase distribution on the array
@@ -128,7 +136,6 @@ sk = np.zeros([N,2])                                                #pointying v
 ts_cascade = np.ones(N, dtype=np.complex_)                            #reflection coefficient normal to plane of incident
 ts_aggr = np.ones(N, dtype=np.complex_)
 
-print(rays[0].ray_lengths)
 
 #all these functions can be optimized
 path_length = rtube.getPathLength(rays, segments)                   #length that ray have travelled, including material parameters
@@ -138,32 +145,32 @@ Ak_ap, dck = rtube.getAmplitude(rays, segments, angles_for_direct)              
 
 
 ############################## RADIATION PATTERN - KIRCHOFF ##########################################3
-Etotal, theta, Ap_field_casc, dck_casc = rp.getRadiationPattern(Ak_ap, path_length[1:N-1], nk[1:N-1], sk[1:N-1], dck, x_ap[1:N-1], y_ap[1:N-1], ts_cascade[1:N-1]) #does not include the outer rays
-Etotal_dB = 20*np.log10(abs(Etotal))
-print('Cascade: '+ str(max(Etotal_dB)))
+# Etotal, theta, Ap_field_casc, dck_casc = rp.getRadiationPattern(Ak_ap, path_length[1:N-1], nk[1:N-1], sk[1:N-1], dck, x_ap[1:N-1], y_ap[1:N-1], ts_cascade[1:N-1]) #does not include the outer rays
+# Etotal_dB = 20*np.log10(abs(Etotal))
+# print('Cascade: '+ str(max(Etotal_dB)))
 
-#plot the radiation pattern
-fig2 = plt.figure()
-fig2.set_dpi(400)
-ax2 = fig2.add_subplot(111)
-ax2.set_aspect(1.5, adjustable='box')
-plt.plot(-theta*180/np.pi+90,  20*np.log10(abs(Etotal)/max(abs(Etotal))), linewidth=1, color = 'blue')
-plt.ylabel('Normalized Pattern, dB')
-plt.title('Cascade')
-plt.xlim([-70, 70])
-plt.ylim([-35, 0])
-plt.xlabel('$\u03B8 $, degrees')
-plt.xticks(range(-90, 91, 10))
-plt.yticks(range(-35, 10, 5))
-plt.rcParams["font.family"] = "Times New Roman" 
-ax2.xaxis.label.set_fontsize(10)
-ax2.yaxis.label.set_fontsize(10)
-plt.grid()
-plt.show()
+# #plot the radiation pattern
+# fig2 = plt.figure()
+# fig2.set_dpi(400)
+# ax2 = fig2.add_subplot(111)
+# ax2.set_aspect(1.5, adjustable='box')
+# plt.plot(-theta*180/np.pi+90,  20*np.log10(abs(Etotal)/max(abs(Etotal))), linewidth=1, color = 'blue')
+# plt.ylabel('Normalized Pattern, dB')
+# plt.title('Cascade')
+# plt.xlim([-70, 70])
+# plt.ylim([-35, 0])
+# plt.xlabel('$\u03B8 $, degrees')
+# plt.xticks(range(-90, 91, 10))
+# plt.yticks(range(-35, 10, 5))
+# plt.rcParams["font.family"] = "Times New Roman" 
+# ax2.xaxis.label.set_fontsize(10)
+# ax2.yaxis.label.set_fontsize(10)
+# plt.grid()
+# plt.show()
 
-# ##saving the radiation pattern results in an excel
-df = pd.DataFrame(Etotal_dB, theta)
-df.to_excel('RT_radpat_' + str(I.output_angle) + 'deg.xlsx', sheet_name='Sheet1')
+# # ##saving the radiation pattern results in an excel
+# df = pd.DataFrame(Etotal_dB, theta)
+# df.to_excel('RT_radpat_' + str(I.output_angle) + 'deg.xlsx', sheet_name='Sheet1')
 
 
 Etotal, theta, Ap_field_aggr, dck_agg = rp.getRadiationPattern(Ak_ap, path_length[1:N-1], nk[1:N-1], sk[1:N-1], dck, x_ap[1:N-1], y_ap[1:N-1], ts_aggr[1:N-1]) #does not include the outer rays

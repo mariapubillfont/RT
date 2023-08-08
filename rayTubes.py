@@ -84,8 +84,12 @@ def getPathLength(rays, segments):
             idx = int(idxs[j])
             if  j == 0:
                 path_length[i] = path_length[i] + ray_length[j]*segments[idx].n1 - phi_i/k0   
+            # else:
             elif reflections == 0: 
+
                 path_length[i] = path_length[i] + ray_length[j]*segments[idx].n1*np.sqrt(1-1j*I.tan_delta)
+
+            # elif reflections == 0: 
 
     #save phase distribution on the array
     df = pd.DataFrame(phi_a, Array)
@@ -197,7 +201,11 @@ def getTransmissionCoef(rays, segments):
                 delta = np.append(delta, distance([x_int, y_int], [x_0_orth, y_0_orth]))
                 last_inter = [x_int, y_int]    
 
-
+        last_angle = getAngleBtwVectors(rays[i].sk, [rays[i].normals[len(intersections)*2-4], rays[i].normals[len(intersections)*2-3]])        
+        if I.Efield_mod == 1:
+            Efield_aux = np.sqrt(np.cos(last_angle)/(np.cos(incident_angle[0])))
+        else:
+            Efield_aux = 1
         if I.nSurfaces == 4:
             complexPermittivity = [1, np.sqrt(er), er, np.sqrt(er), 1]
         elif I.nSurfaces == 2:
@@ -206,4 +214,4 @@ def getTransmissionCoef(rays, segments):
         if reflections == 1:
             ts_coeff[i] = multilayer.getReflectionCoefficients_cascade(incident_angle, thickness, er, I.f) #thickness_agg, 3rd arg
             ts_coeff_aggregate[i] = multilayer.getReflectionCoefficients_agg(incident_angle, thickness_agrr, complexPermittivity, I.f, delta)
-    return ts_coeff, ts_coeff_aggregate     
+    return ts_coeff, (ts_coeff_aggregate)*Efield_aux     

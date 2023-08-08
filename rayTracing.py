@@ -93,9 +93,17 @@ def discretize_function(f, n_segments, n1, n2, isLast, isFirst):
     # n2 - refractive index of second medium
     # isLast - Bool, indicates if the segment is the furthest out
     # isFirst - Bool, indicates if segment is the array
-
+    # if isLast or isFirst:
+    discrete_x = np.linspace(-D, D, n_segments+1)    
+    # else:
+    #     function_aux = f(p)
+    #     for i in range(0, len(function_aux)-1):
+    #         if function_aux[i] < 0 and function_aux[i+1] > 0:
+    #             index_aux = i
+    #     discrete_x = np.linspace(-p[index_aux], p[index_aux], n_segments+1)        
+    
     surface = []                                                                            #initiate surface vactor     
-    discrete_x = np.linspace(-D, D, n_segments+1)                                           #start and stop x-values for segments
+                                           #start and stop x-values for segments
     for i in range(0, n_segments):
         u = [discrete_x[i+1] - discrete_x[i], f(discrete_x[i+1]) - f(discrete_x[i])]        #maps out the straight line that is the segment
 
@@ -377,14 +385,17 @@ def reverseRayTracing_segments(theta_out_x, segments):
                 'weight' : 'normal',
                 'size'   : 12}
         plt.rc('font', **font)
-        plt.ylim([0, h2*2])
-        plt.xlim([-D, D])
+        plt.title('Reverse RT')
+        plt.ylim([0, 0.11])
+        plt.xlim([0.4, 0.6])
         plt.ylabel('z (m)')
         plt.xlabel('x (m)')
         plt.plot(p, surface1_arr, color='gray', linewidth = 1)
         plt.plot(p, surface2_arr, color='gray', linewidth = 1)
         ax.fill_between(p, surface2_arr, surface1_arr, color = '#c3c5e2')
         ax.set_aspect(1, adjustable='box')
+        for i in range(0, len(segments)):
+            plt.plot([segments[i].A[0], segments[i].B[0]], [segments[i].A[1], segments[i].B[1]], color = 'red', linewidth = 0.5)
 
 
     for i in range(0, len(x_aperture)):         #For each ray
@@ -406,7 +417,7 @@ def reverseRayTracing_segments(theta_out_x, segments):
             lastRay = [x1-x0, y1-y0]            #ray that ends up at array
 
             # If the ray hits the array
-            if abs(x0) <= max(Array) + max(Array)*0.1 and y0 >= 0:                          #add a 10% of tolerance
+            if abs(x0) <= max(Array) + max(Array)*0.07 and y0 >= 0:                          #add a 10% of tolerance
                 angle_in = np.append(angle_in, getAngleBtwVectors(lastRay, [0,1]))          #angle between array normal and ray
                 angle_position = np.append(angle_position, x0)                              #where ray hits array
                 Pk_np = np.array(Pk[i])

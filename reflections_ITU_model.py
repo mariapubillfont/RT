@@ -1,5 +1,11 @@
 import numpy as np
 
+e0 = 8.8541878128e-12                               #vacuum permitivitty
+f = 13e9                                            #frequency            
+c0 = 299792458                                      #vacuum light speed
+wv = c0/f                                           # wavelength in mm (defined in the paper)
+k0 = 2*np.pi/wv  
+
 
 def getReflectionCoefficients_multiLayer(k_0, layerThickness, polaritzation, complexPermittivity, incidentAngle):
     #k0 - free space wave number
@@ -35,4 +41,10 @@ def getReflectionCoefficients_multiLayer(k_0, layerThickness, polaritzation, com
     else:
         r = G[0]/F[0] #reflection and transmission for TM polartization
         t = 1/F[0]
+    
+    print(t, np.abs(t))
     return t
+
+
+
+getReflectionCoefficients_multiLayer(k0, [0, 0.1, 0], 'TE', [1, 4, 2], np.deg2rad(60))
